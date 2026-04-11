@@ -1,0 +1,16 @@
+# Global owners
+*                     @neptunefriend/core
+
+# React frontend
+apps/web/             @neptunefriend/frontend
+
+# API
+apps/api/             @neptunefriend/backend
+
+# Infrastructure
+infra/                @neptunefriend/devops
+k8s/                  @neptunefriend/devops
+.github/workflows/    @neptunefriend/devops
+
+# Monitoring
+monitoring/           @neptunefriend/devops
