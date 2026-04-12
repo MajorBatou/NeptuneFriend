@@ -4,7 +4,7 @@
 
 set -e
 
-BUCKET_NAME="neptunefriend-terraform-state-YOUR_ACCOUNT_ID"
+BUCKET_NAME="neptunefriend-terraform-state-601644128389"
 REGION="us-east-1"
 TABLE_NAME="neptunefriend-terraform-locks"
 

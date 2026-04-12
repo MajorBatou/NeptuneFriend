@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "YOUR_BUCKET_NAME"
+    bucket         = "neptunefriend-terraform-state-601644128389"
     key            = "neptunefriend/staging/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "neptunefriend-terraform-locks"
@@ -48,7 +48,7 @@ module "eks" {
   public_subnet_ids           = module.vpc.public_subnet_ids
   private_subnet_ids          = module.vpc.private_subnet_ids
   eks_nodes_security_group_id = module.vpc.eks_nodes_security_group_id
-  node_instance_type          = "t3.medium"
+  node_instance_type          = "t3.micro"
   node_desired_size           = 2
   node_min_size               = 1
   node_max_size               = 3
