@@ -38,3 +38,7 @@ infra/terraform/*.tfvars
 
 # Husky
 .husky/_
+
+# Terraform secret values - never commit
+infra/terraform/environments/**/*.tfvars
+*.tfvars.local
