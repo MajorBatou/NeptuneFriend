@@ -42,3 +42,7 @@ infra/terraform/*.tfvars
 # Terraform secret values - never commit
 infra/terraform/environments/**/*.tfvars
 *.tfvars.local
+
+# Terraform provider binaries and cache
+**/.terraform/
+**/.terraform.lock.hcl
