@@ -24,6 +24,8 @@ RUN npm ci --workspace=apps/api --omit=dev
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
+RUN chown -R node:node /app
+
 EXPOSE 4000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

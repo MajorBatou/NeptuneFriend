@@ -46,3 +46,4 @@ infra/terraform/environments/**/*.tfvars
 # Terraform provider binaries and cache
 **/.terraform/
 **/.terraform.lock.hcl
+terraform.tfstate
