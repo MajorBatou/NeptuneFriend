@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neptunefriend-config
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+    environment: staging
+data:
+  NODE_ENV: "production"
+  PORT: "4000"
+  WEB_URL: "https://staging.neptunefriend.app"
+  API_URL: "https://api.staging.neptunefriend.app"
+  LOG_LEVEL: "info"
+  CACHE_TTL: "300"
