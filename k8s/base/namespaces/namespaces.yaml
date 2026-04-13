@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: neptune-staging
+  labels:
+    environment: staging
+    project: neptunefriend
+    managed-by: kubectl
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: neptune-prod
+  labels:
+    environment: prod
+    project: neptunefriend
+    managed-by: kubectl
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    project: neptunefriend
+    managed-by: kubectl
