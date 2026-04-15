@@ -1,0 +1,60 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compass {
+  flex-shrink: 0;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.speed {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.direction {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ocean-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.beaufort {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.gust {
+  font-size: 12px;
+  color: var(--color-wind-moderate);
+  font-weight: 500;
+}
+
+.sm .speed {
+  font-size: 15px;
+}
+.sm .direction {
+  font-size: 11px;
+}
+.sm .beaufort {
+  font-size: 11px;
+}
+
+.lg .speed {
+  font-size: 28px;
+}
+.lg .direction {
+  font-size: 15px;
+}
+.lg .beaufort {
+  font-size: 13px;
+}
