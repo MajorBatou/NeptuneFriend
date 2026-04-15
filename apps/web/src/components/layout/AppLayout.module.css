@@ -1,0 +1,99 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0 var(--space-6);
+  height: 60px;
+  background-color: var(--color-ocean-deep);
+  border-bottom: 2px solid var(--color-ocean-mid);
+}
+
+.navBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.anchor {
+  font-size: 20px;
+}
+
+.brandName {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.navLinks {
+  display: flex;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.link,
+.linkActive {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.link {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.link:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.linkActive {
+  color: #ffffff;
+  background-color: var(--color-ocean-light);
+}
+
+.navUser {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.userName {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.logoutBtn {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.main {
+  flex: 1;
+  overflow: auto;
+}
