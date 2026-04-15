@@ -1,0 +1,40 @@
+---
+# Staging environment playbook
+# Usage: ansible-playbook playbooks/staging.yml -i inventory.ini
+
+- name: Configure staging nodes
+  hosts: staging
+  become: yes
+  gather_facts: yes
+
+  vars:
+    environment: staging
+    log_level: debug
+
+  roles:
+    - role: common
+      tags: [common]
+    - role: docker
+      tags: [docker]
+    - role: kubernetes
+      tags: [kubernetes]
+
+  tasks:
+    - name: Configure kubectl for staging EKS cluster
+      shell: |
+        aws eks update-kubeconfig \
+          --region us-east-1 \
+          --name neptunefriend-staging \
+          --kubeconfig /home/ubuntu/.kube/config
+      become_user: ubuntu
+      changed_when: false
+
+    - name: Verify kubectl can reach staging cluster
+      shell: kubectl get nodes
+      become_user: ubuntu
+      register: kubectl_output
+      changed_when: false
+
+    - name: Print cluster nodes
+      debug:
+        msg: "{{ kubectl_output.stdout_lines }}"

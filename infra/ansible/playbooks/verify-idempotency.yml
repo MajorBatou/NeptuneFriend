@@ -1,0 +1,89 @@
+---
+# Idempotency verification playbook
+# Run this twice — second run should show 0 changes
+# Usage: ansible-playbook playbooks/verify-idempotency.yml -i inventory/staging/hosts.ini
+
+- name: Verify node configuration is idempotent
+  hosts: eks_nodes
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Check Docker is running
+      ansible.builtin.service_facts:
+
+    - name: Assert Docker is active
+      ansible.builtin.assert:
+        that: "'docker' in services and services['docker']['state'] == 'running'"
+        fail_msg: "Docker is NOT running on {{ inventory_hostname }}"
+        success_msg: "Docker is running on {{ inventory_hostname }}"
+
+    - name: Check kubectl is installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/kubectl
+      register: kubectl_stat
+
+    - name: Assert kubectl exists
+      ansible.builtin.assert:
+        that: kubectl_stat.stat.exists
+        fail_msg: "kubectl is NOT installed on {{ inventory_hostname }}"
+        success_msg: "kubectl is installed on {{ inventory_hostname }}"
+
+    - name: Check Helm is installed
+      ansible.builtin.stat:
+        path: /usr/local/bin/helm
+      register: helm_stat
+
+    - name: Assert Helm exists
+      ansible.builtin.assert:
+        that: helm_stat.stat.exists
+        fail_msg: "Helm is NOT installed on {{ inventory_hostname }}"
+        success_msg: "Helm is installed on {{ inventory_hostname }}"
+
+    - name: Check UFW is active
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      changed_when: false
+
+    - name: Assert UFW is active
+      ansible.builtin.assert:
+        that: "'active' in ufw_status.stdout"
+        fail_msg: "UFW firewall is NOT active on {{ inventory_hostname }}"
+        success_msg: "UFW firewall is active on {{ inventory_hostname }}"
+
+    - name: Check fail2ban is running
+      ansible.builtin.service_facts:
+
+    - name: Assert fail2ban is active
+      ansible.builtin.assert:
+        that: "'fail2ban' in services and services['fail2ban']['state'] == 'running'"
+        fail_msg: "fail2ban is NOT running on {{ inventory_hostname }}"
+        success_msg: "fail2ban is running on {{ inventory_hostname }}"
+
+    - name: Verify kernel parameters
+      ansible.builtin.command: sysctl {{ item.name }}
+      register: sysctl_check
+      changed_when: false
+      loop: "{{ sysctl_params }}"
+
+    - name: Verify swap is disabled
+      ansible.builtin.command: swapon --summary
+      register: swap_check
+      changed_when: false
+
+    - name: Assert swap is off
+      ansible.builtin.assert:
+        that: swap_check.stdout == ""
+        fail_msg: "Swap is still enabled on {{ inventory_hostname }}"
+        success_msg: "Swap is disabled on {{ inventory_hostname }}"
+
+    - name: Print verification summary
+      ansible.builtin.debug:
+        msg: |
+          Node {{ inventory_hostname }} verification complete:
+          - Docker: running
+          - kubectl: installed
+          - Helm: installed
+          - UFW: active
+          - fail2ban: running
+          - Swap: disabled

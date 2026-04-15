@@ -1,0 +1,49 @@
+---
+# Main playbook — runs all roles on all nodes
+# Usage: ansible-playbook playbooks/site.yml -i inventory/staging/hosts.ini
+
+- name: Harden and configure all NeptuneFriend nodes
+  hosts: eks_nodes
+  become: yes
+  gather_facts: yes
+
+  pre_tasks:
+    - name: Print node info
+      ansible.builtin.debug:
+        msg: "Configuring {{ inventory_hostname }} — {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+    - name: Verify SSH connectivity
+      ansible.builtin.ping:
+
+  roles:
+    - role: common
+      tags: [common]
+
+    - role: hardening
+      tags: [hardening, security]
+
+    - role: docker
+      tags: [docker]
+
+    - role: kubernetes
+      tags: [kubernetes, k8s]
+
+  post_tasks:
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: Confirm Docker is running
+      ansible.builtin.assert:
+        that: "'docker' in services and services['docker']['state'] == 'running'"
+        fail_msg: "Docker is not running on {{ inventory_hostname }}"
+        success_msg: "Docker is running on {{ inventory_hostname }}"
+
+    - name: Confirm fail2ban is running
+      ansible.builtin.assert:
+        that: "'fail2ban' in services and services['fail2ban']['state'] == 'running'"
+        fail_msg: "fail2ban is not running on {{ inventory_hostname }}"
+        success_msg: "fail2ban is running on {{ inventory_hostname }}"
+
+    - name: Print completion message
+      ansible.builtin.debug:
+        msg: "Node {{ inventory_hostname }} hardened and configured successfully"

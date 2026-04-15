@@ -1,0 +1,9 @@
+# Staging environment variables
+environment: staging
+log_level: debug
+node_count: 2
+
+# Docker settings
+docker_log_driver: json-file
+docker_log_max_size: 100m
+docker_log_max_file: 3

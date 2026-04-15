@@ -1,0 +1,33 @@
+# Variables applied to all hosts
+project: neptunefriend
+timezone: UTC
+
+# System packages to install on all nodes
+common_packages:
+  - curl
+  - wget
+  - git
+  - unzip
+  - htop
+  - vim
+  - jq
+  - net-tools
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - apt-transport-https
+
+# Security settings
+ssh_port: 22
+disable_root_login: true
+password_authentication: false
+
+# Firewall allowed ports
+allowed_ports:
+  - 22    # SSH
+  - 80    # HTTP
+  - 443   # HTTPS
+  - 6443  # Kubernetes API
+  - 10250 # Kubelet
+  - 10255 # Kubelet read-only
+  - 30000-32767  # NodePort range

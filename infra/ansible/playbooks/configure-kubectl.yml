@@ -1,0 +1,55 @@
+---
+# Configure local kubectl to connect to EKS staging cluster
+# Run this locally after terraform apply
+# Usage: ansible-playbook playbooks/configure-kubectl.yml --connection=local
+
+- name: Configure kubectl for EKS staging
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+
+  vars:
+    eks_cluster_name: neptunefriend-staging
+    aws_region: us-east-1
+
+  tasks:
+    - name: Check AWS CLI is installed
+      ansible.builtin.command: aws --version
+      register: aws_check
+      changed_when: false
+
+    - name: Update kubeconfig for staging EKS
+      ansible.builtin.command: >
+        aws eks update-kubeconfig
+        --region {{ aws_region }}
+        --name {{ eks_cluster_name }}
+      register: kubeconfig_update
+      changed_when: "'Updated context' in kubeconfig_update.stdout"
+
+    - name: Verify cluster connection
+      ansible.builtin.command: kubectl get nodes
+      register: nodes_output
+      changed_when: false
+
+    - name: Print cluster nodes
+      ansible.builtin.debug:
+        msg: "{{ nodes_output.stdout_lines }}"
+
+    - name: Create neptune-staging namespace
+      ansible.builtin.command: >
+        kubectl apply -f {{ playbook_dir }}/../../../k8s/base/namespaces/namespaces.yaml
+      register: ns_output
+      changed_when: "'created' in ns_output.stdout or 'configured' in ns_output.stdout"
+
+    - name: Print namespace output
+      ansible.builtin.debug:
+        msg: "{{ ns_output.stdout_lines }}"
+
+    - name: Verify namespaces exist
+      ansible.builtin.command: kubectl get namespaces
+      register: ns_list
+      changed_when: false
+
+    - name: Print namespaces
+      ansible.builtin.debug:
+        msg: "{{ ns_list.stdout_lines }}"
