@@ -1,0 +1,74 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.weatherRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.weatherLabel {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.weatherValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+}
+
+.weatherDesc {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.tideRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tideFlow {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ocean-light);
+  text-transform: capitalize;
+}
+
+.tideHeight {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-ocean-deep);
+}
+
+.updated {
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: right;
+  margin-top: var(--space-2);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: var(--space-2);
+}

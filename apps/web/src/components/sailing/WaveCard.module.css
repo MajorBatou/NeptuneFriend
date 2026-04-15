@@ -1,0 +1,66 @@
+.card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.visual {
+  display: flex;
+  align-items: flex-end;
+  height: 64px;
+}
+
+.barTrack {
+  width: 12px;
+  height: 100%;
+  background-color: var(--color-sea-foam);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.barFill {
+  width: 100%;
+  border-radius: 6px;
+  transition:
+    height 0.4s ease-out,
+    background-color 0.3s;
+  min-height: 4px;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.height {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.detail {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.detailLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  min-width: 56px;
+}
+
+.detailValue {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+}

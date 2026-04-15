@@ -1,8 +1,79 @@
+import { Spinner, SkeletonCard } from '@/components/ui';
+import { ConditionsCard } from '@/components/sailing';
+import { useZones, useConditions } from '@/hooks';
+import { useSailingStore } from '@/store';
+import styles from './Dashboard.module.css';
+
 export default function Dashboard() {
+  const { data: zones, isLoading: zonesLoading } = useZones();
+  const { selectedZoneId, selectZone } = useSailingStore();
+  const { data: conditions, isLoading: conditionsLoading } = useConditions(selectedZoneId);
+  const selectedZone = zones?.find((z) => z.id === selectedZoneId);
+
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Dashboard</h1>
-      <p>NeptuneFriend — Dashboard page (Day 2+ implementation)</p>
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>Sailing Dashboard</h1>
+        <p className={styles.subtitle}>Real-time conditions for your favourite zones</p>
+      </header>
+
+      <div className={styles.content}>
+        <aside className={styles.sidebar}>
+          <h2 className={styles.sidebarTitle}>Sailing Zones</h2>
+          {zonesLoading ? (
+            <div className={styles.skeletons}>
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+          ) : (
+            <ul className={styles.zoneList}>
+              {zones?.map((zone) => (
+                <li key={zone.id}>
+                  <button
+                    className={[
+                      styles.zoneItem,
+                      selectedZoneId === zone.id ? styles.zoneItemActive : '',
+                    ].join(' ')}
+                    onClick={() => selectZone(zone.id)}
+                  >
+                    <span className={styles.zoneName}>{zone.name}</span>
+                    {zone.conditions && (
+                      <span
+                        className={styles.zoneDot}
+                        style={{
+                          backgroundColor:
+                            zone.conditions.safetyRating === 'safe'
+                              ? 'var(--color-wind-calm)'
+                              : zone.conditions.safetyRating === 'caution'
+                                ? 'var(--color-wind-moderate)'
+                                : 'var(--color-wind-strong)',
+                        }}
+                      />
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+
+        <main className={styles.main}>
+          {!selectedZoneId && (
+            <div className={styles.empty}>
+              <p>Select a sailing zone to view conditions</p>
+            </div>
+          )}
+          {selectedZoneId && conditionsLoading && (
+            <div className={styles.loading}>
+              <Spinner size="lg" label="Loading conditions..." />
+            </div>
+          )}
+          {selectedZoneId && conditions && selectedZone && (
+            <ConditionsCard conditions={conditions} zoneName={selectedZone.name} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }
