@@ -1,0 +1,130 @@
+---
+# Security hardening tasks for all NeptuneFriend nodes
+
+- name: Install security packages
+  ansible.builtin.apt:
+    name:
+      - fail2ban
+      - ufw
+      - auditd
+      - aide
+      - libpam-pwquality
+    state: present
+    update_cache: yes
+
+- name: Configure fail2ban
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      bantime  = 3600
+      findtime = 600
+      maxretry = 3
+      backend  = systemd
+
+      [sshd]
+      enabled  = true
+      port     = {{ ssh_port }}
+      maxretry = 3
+    mode: '0644'
+  notify: restart fail2ban
+
+- name: Enable and start fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: yes
+
+- name: Configure UFW defaults
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Configure UFW allowed ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ ufw_allowed_ports }}"
+
+- name: Harden SSH configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    backup: yes
+    validate: /usr/sbin/sshd -t -f %s
+  notify: restart sshd
+
+- name: Set password complexity requirements
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^# minlen', line: 'minlen = 14' }
+    - { regexp: '^# dcredit', line: 'dcredit = -1' }
+    - { regexp: '^# ucredit', line: 'ucredit = -1' }
+    - { regexp: '^# lcredit', line: 'lcredit = -1' }
+    - { regexp: '^# ocredit', line: 'ocredit = -1' }
+
+- name: Disable unused filesystem types
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/disable-filesystems.conf
+    content: |
+      install cramfs /bin/true
+      install freevxfs /bin/true
+      install jffs2 /bin/true
+      install hfs /bin/true
+      install hfsplus /bin/true
+      install squashfs /bin/true
+      install udf /bin/true
+    mode: '0644'
+
+- name: Set file permissions on sensitive files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: "{{ item.mode }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default('root') }}"
+  loop:
+    - { path: '/etc/passwd', mode: '0644' }
+    - { path: '/etc/shadow', mode: '0640' }
+    - { path: '/etc/group', mode: '0644' }
+    - { path: '/etc/gshadow', mode: '0640' }
+    - { path: '/etc/ssh/sshd_config', mode: '0600' }
+  ignore_errors: yes
+
+- name: Configure auditd rules for Neptune
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/neptunefriend.rules
+    content: |
+      # Monitor authentication events
+      -w /etc/passwd -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/group -p wa -k identity
+
+      # Monitor privileged commands
+      -a always,exit -F arch=b64 -S execve -F euid=0 -k privileged
+
+      # Monitor Docker daemon
+      -w /usr/bin/docker -p x -k docker
+      -w /var/lib/docker -p wa -k docker
+
+      # Monitor kubectl
+      -w /usr/local/bin/kubectl -p x -k kubectl
+
+      # Monitor network configuration changes
+      -a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale
+    mode: '0640'
+  notify: restart auditd
+
+- name: Enable and start auditd
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: yes

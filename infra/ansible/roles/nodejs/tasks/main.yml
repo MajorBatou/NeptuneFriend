@@ -1,0 +1,43 @@
+---
+# Install Node.js 20 LTS via nvm
+
+- name: Install nvm dependencies
+  apt:
+    name:
+      - curl
+      - build-essential
+    state: present
+
+- name: Install nvm for ubuntu user
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  args:
+    creates: /home/ubuntu/.nvm/nvm.sh
+  become_user: ubuntu
+
+- name: Install Node.js 20 via nvm
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install 20
+    nvm use 20
+    nvm alias default 20
+  args:
+    executable: /bin/bash
+  become_user: ubuntu
+  changed_when: false
+
+- name: Verify Node.js installation
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    node --version
+  args:
+    executable: /bin/bash
+  become_user: ubuntu
+  register: node_version
+  changed_when: false
+
+- name: Print Node.js version
+  debug:
+    msg: "Node.js installed: {{ node_version.stdout }}"

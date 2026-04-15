@@ -1,0 +1,131 @@
+---
+# Common hardening tasks applied to all nodes
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Upgrade all packages
+  apt:
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install common packages
+  apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Set timezone
+  timezone:
+    name: "{{ timezone }}"
+
+- name: Create neptunefriend system user
+  user:
+    name: neptune
+    system: yes
+    shell: /bin/bash
+    home: /home/neptune
+    createhome: yes
+    groups: sudo
+    append: yes
+
+- name: Set up SSH authorized keys for neptune user
+  authorized_key:
+    user: neptune
+    state: present
+    key: "{{ lookup('file', '~/.ssh/neptunefriend-staging.pem.pub') }}"
+  ignore_errors: yes
+
+- name: Harden SSH configuration
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    backup: yes
+  notify: restart sshd
+
+- name: Configure UFW firewall — allow SSH
+  ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+
+- name: Configure UFW firewall — allow HTTP
+  ufw:
+    rule: allow
+    port: 80
+    proto: tcp
+
+- name: Configure UFW firewall — allow HTTPS
+  ufw:
+    rule: allow
+    port: 443
+    proto: tcp
+
+- name: Configure UFW firewall — allow Kubernetes API
+  ufw:
+    rule: allow
+    port: 6443
+    proto: tcp
+
+- name: Enable UFW firewall
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Configure kernel parameters for Kubernetes
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { name: 'net.bridge.bridge-nf-call-iptables', value: '1' }
+    - { name: 'net.bridge.bridge-nf-call-ip6tables', value: '1' }
+    - { name: 'net.ipv4.ip_forward', value: '1' }
+    - { name: 'vm.swappiness', value: '0' }
+    - { name: 'fs.inotify.max_user_watches', value: '524288' }
+
+- name: Disable swap
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Remove swap from fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^.*swap.*$'
+    state: absent
+
+- name: Load required kernel modules
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Persist kernel modules on boot
+  copy:
+    content: |
+      br_netfilter
+      overlay
+    dest: /etc/modules-load.d/neptunefriend.conf
+
+- name: Set up log rotation for application logs
+  copy:
+    content: |
+      /var/log/neptunefriend/*.log {
+        daily
+        rotate 7
+        compress
+        delaycompress
+        missingok
+        notifempty
+        create 0644 neptune neptune
+      }
+    dest: /etc/logrotate.d/neptunefriend

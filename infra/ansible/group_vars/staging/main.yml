@@ -1,0 +1,10 @@
+---
+# Staging-specific variables
+
+environment: staging
+log_level: debug
+eks_cluster_name: neptunefriend-staging
+
+# Relaxed resource limits for staging
+node_max_pods: 17
+kubelet_max_pods: 17
