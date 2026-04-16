@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
-import { register, login, users } from '../controllers/authController';
+import { register, login, users } from './controllers/authController';
 
 function mockRes() {
   const res = {
