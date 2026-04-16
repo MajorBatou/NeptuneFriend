@@ -1,0 +1,121 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-ocean-deep) 0%, var(--color-ocean-mid) 100%);
+  padding: var(--space-4);
+}
+
+.card {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: var(--space-6);
+}
+
+.anchor {
+  font-size: 40px;
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.brandName {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-ocean-deep);
+  margin: 0 0 6px;
+}
+
+.brandSub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: var(--space-6);
+}
+
+.tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #64748b;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+
+.tabActive {
+  background: white;
+  color: var(--color-ocean-deep);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.error {
+  padding: 10px 14px;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  border-left: 3px solid #ef4444;
+}
+
+.forgotLink {
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-ocean-light);
+  text-decoration: none;
+  display: block;
+}
+
+.forgotLink:hover {
+  text-decoration: underline;
+}
+
+.demo {
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-sea-foam);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(45, 125, 210, 0.2);
+}
+
+.demoTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ocean-mid);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.demoText {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
