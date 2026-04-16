@@ -1,0 +1,160 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: var(--radius-md);
+  width: fit-content;
+}
+
+.tab {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: #64748b;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+
+.tab:hover {
+  color: var(--color-ocean-deep);
+}
+
+.tabActive {
+  background: white;
+  color: var(--color-ocean-deep);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.point {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px 80px 12px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.1s;
+}
+
+.point:hover {
+  background: #f8fafc;
+}
+
+.time {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.timeMain {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ocean-deep);
+}
+
+.timeSub {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.wind {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.windSpeed {
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.windDir {
+  font-size: 11px;
+  color: #64748b;
+  min-width: 28px;
+}
+
+.windBar {
+  flex: 1;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.windBarFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.waves {
+  text-align: right;
+}
+
+.waveHeight {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ocean-mid);
+}
+
+.weather {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.temp {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+}
+
+.weatherDesc {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.empty {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 24px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+  padding: 12px;
+}

@@ -1,0 +1,58 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.visual {
+  flex-shrink: 0;
+}
+
+.data {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flow {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.description {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.times {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.timeRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.timeLabel {
+  font-size: 11px;
+  color: #94a3b8;
+  min-width: 52px;
+}
+
+.timeValue {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+}
+
+.sm .flow {
+  font-size: 14px;
+}
+.lg .flow {
+  font-size: 22px;
+}
