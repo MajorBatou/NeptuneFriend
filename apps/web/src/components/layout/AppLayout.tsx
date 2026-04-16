@@ -1,12 +1,17 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store';
+import { useOfflineDetector } from '@/hooks';
+import OfflineBanner from '@/components/ui/OfflineBanner';
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
   const { user, logout } = useAuthStore();
+  useOfflineDetector();
 
   return (
     <div className={styles.layout}>
+      <OfflineBanner />
+
       <nav className={styles.nav}>
         <div className={styles.navBrand}>
           <span className={styles.anchor}>⚓</span>
