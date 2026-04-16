@@ -1,5 +1,6 @@
 import { Spinner, SkeletonCard } from '@/components/ui';
 import { ConditionsCard } from '@/components/sailing';
+import { WindRose, TidalFlow, ForecastTimeline, WeatherStrip } from '@/components/weather';
 import { useZones, useConditions } from '@/hooks';
 import { useSailingStore } from '@/store';
 import styles from './Dashboard.module.css';
@@ -64,13 +65,44 @@ export default function Dashboard() {
               <p>Select a sailing zone to view conditions</p>
             </div>
           )}
+
           {selectedZoneId && conditionsLoading && (
             <div className={styles.loading}>
               <Spinner size="lg" label="Loading conditions..." />
             </div>
           )}
+
           {selectedZoneId && conditions && selectedZone && (
-            <ConditionsCard conditions={conditions} zoneName={selectedZone.name} />
+            <div className={styles.detailGrid}>
+              {/* Summary card */}
+              <div className={styles.summaryCard}>
+                <ConditionsCard conditions={conditions} zoneName={selectedZone.name} />
+              </div>
+
+              {/* Wind Rose */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Wind Rose</h3>
+                <WindRose wind={conditions.wind} size={180} />
+              </div>
+
+              {/* Tidal Flow */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Tidal Flow</h3>
+                <TidalFlow tides={conditions.tides} size="md" />
+              </div>
+
+              {/* Weather */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Weather</h3>
+                <WeatherStrip weather={conditions.weather} />
+              </div>
+
+              {/* Forecast */}
+              <div className={styles.forecastCard}>
+                <h3 className={styles.cardTitle}>Forecast</h3>
+                <ForecastTimeline zoneId={selectedZoneId} />
+              </div>
+            </div>
           )}
         </main>
       </div>
