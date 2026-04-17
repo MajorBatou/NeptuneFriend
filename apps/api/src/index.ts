@@ -35,26 +35,22 @@ app.get('/weather/zones', (_req, res) => {
 });
 
 app.use((_req, res) => {
-  res
-    .status(404)
-    .json({
-      error: 'Not found',
-      message: 'The requested endpoint does not exist',
-      statusCode: 404,
-      timestamp: new Date().toISOString(),
-    });
+  res.status(404).json({
+    error: 'Not found',
+    message: 'The requested endpoint does not exist',
+    statusCode: 404,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err.stack);
-  res
-    .status(500)
-    .json({
-      error: 'Internal server error',
-      message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
-      statusCode: 500,
-      timestamp: new Date().toISOString(),
-    });
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'production' ? 'Something went wrong' : err.message,
+    statusCode: 500,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.listen(PORT, () => {
