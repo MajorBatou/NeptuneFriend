@@ -60,7 +60,8 @@ export function useNavShortcuts() {
       window.location.href = '/alerts';
     },
     '?': () => {
-      console.info('NeptuneFriend keyboard shortcuts: g=dashboard, m=map, r=planner, a=alerts');
+      // Shortcut help — logged via toast in future
+      void 0;
     },
   };
 

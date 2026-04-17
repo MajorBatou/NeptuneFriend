@@ -25,16 +25,8 @@ function sendToAnalytics(metric: WebVitalMetric) {
   // In production this would send to your analytics endpoint
   // For now log to console in development
   if (import.meta.env.DEV) {
-    const color =
-      metric.rating === 'good'
-        ? '#22c55e'
-        : metric.rating === 'needs-improvement'
-          ? '#f59e0b'
-          : '#ef4444';
-    console.info(
-      `%c[Web Vitals] ${metric.name}: ${metric.value.toFixed(1)} — ${metric.rating}`,
-      `color: ${color}; font-weight: bold`
-    );
+    // In dev, dispatch a custom event so DevTools can pick it up
+    window.dispatchEvent(new CustomEvent('web-vitals', { detail: metric }));
   }
 
   // Send to API endpoint for monitoring (Day 25 — Prometheus integration)
