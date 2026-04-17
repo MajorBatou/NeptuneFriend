@@ -4,30 +4,18 @@ import type { Waypoint } from '@/types';
 import styles from './WaypointList.module.css';
 
 export default function WaypointList() {
-  const { draftWaypoints, isDrafting, removeWaypoint, reorderWaypoints } = useRouteStore();
-
+  const { draftWaypoints, isDrawing, removeWaypoint } = useRouteStore();
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
   if (draftWaypoints.length === 0) {
     return (
       <div className={styles.empty}>
-        {isDrafting ? 'Click on the map to add waypoints' : 'No waypoints yet — start a new route'}
+        {isDrawing ? 'Click on the map to add waypoints' : 'No waypoints yet — start a new route'}
       </div>
     );
   }
 
   function handleDragStart(i: number) {
-    setDragIdx(i);
-  }
-
-  function handleDragOver(e: React.DragEvent, i: number) {
-    e.preventDefault();
-    if (dragIdx === null || dragIdx === i) return;
-
-    const updated = [...draftWaypoints];
-    const [moved] = updated.splice(dragIdx, 1);
-    updated.splice(i, 0, moved);
-    reorderWaypoints(updated);
     setDragIdx(i);
   }
 
@@ -42,19 +30,17 @@ export default function WaypointList() {
         const isEnd = i === draftWaypoints.length - 1;
         const label = isStart ? 'Start' : isEnd ? 'End' : `Waypoint ${i}`;
         const dotColor = isStart ? '#22c55e' : isEnd ? '#ef4444' : '#2d7dd2';
-
         return (
           <li
             key={wp.id}
             className={[styles.item, dragIdx === i ? styles.dragging : ''].join(' ')}
-            draggable={isDrafting && draftWaypoints.length > 1}
+            draggable={isDrawing && draftWaypoints.length > 1}
             onDragStart={() => handleDragStart(i)}
-            onDragOver={(e) => handleDragOver(e, i)}
             onDragEnd={handleDragEnd}
             aria-label={`${label}: ${wp.lat.toFixed(4)}, ${wp.lng.toFixed(4)}`}
           >
             <div className={styles.itemLeft}>
-              {isDrafting && draftWaypoints.length > 1 && (
+              {isDrawing && draftWaypoints.length > 1 && (
                 <span className={styles.dragHandle} aria-hidden="true">
                   ⋮⋮
                 </span>
@@ -71,8 +57,7 @@ export default function WaypointList() {
                 </span>
               </div>
             </div>
-
-            {isDrafting && (
+            {isDrawing && (
               <button
                 className={styles.removeBtn}
                 onClick={() => removeWaypoint(wp.id)}
