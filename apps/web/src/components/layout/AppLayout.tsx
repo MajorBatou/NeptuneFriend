@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store';
 import { useOfflineDetector } from '@/hooks';
+import { useNavShortcuts } from '@/hooks';
 import OfflineBanner from '@/components/ui/OfflineBanner';
 import { AlertBell } from '@/components/alerts';
 import styles from './AppLayout.module.css';
@@ -8,13 +9,16 @@ import styles from './AppLayout.module.css';
 export default function AppLayout() {
   const { user, logout } = useAuthStore();
   useOfflineDetector();
+  useNavShortcuts();
 
   return (
     <div className={styles.layout}>
       <OfflineBanner />
-      <nav className={styles.nav}>
+      <nav className={styles.nav} aria-label="Main navigation">
         <div className={styles.navBrand}>
-          <span className={styles.anchor}>⚓</span>
+          <span className={styles.anchor} aria-hidden="true">
+            ⚓
+          </span>
           <span className={styles.brandName}>NeptuneFriend</span>
         </div>
 
@@ -49,8 +53,14 @@ export default function AppLayout() {
           <AlertBell />
           {user && (
             <>
-              <span className={styles.userName}>{user.name}</span>
-              <button onClick={() => logout()} className={styles.logoutBtn}>
+              <span className={styles.userName} aria-label={`Signed in as ${user.name}`}>
+                {user.name}
+              </span>
+              <button
+                onClick={() => logout()}
+                className={styles.logoutBtn}
+                aria-label="Sign out of NeptuneFriend"
+              >
                 Sign out
               </button>
             </>
@@ -58,7 +68,7 @@ export default function AppLayout() {
         </div>
       </nav>
 
-      <main className={styles.main}>
+      <main id="main-content" className={styles.main} tabIndex={-1}>
         <Outlet />
       </main>
     </div>

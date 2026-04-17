@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -14,6 +15,7 @@ export default defineConfig({
       '@store': path.resolve(__dirname, './src/store'),
     },
   },
+
   server: {
     port: 3000,
     proxy: {
@@ -24,18 +26,22 @@ export default defineConfig({
       },
     },
   },
+
   build: {
     outDir: 'dist',
     sourcemap: true,
+    chunkSizeWarningLimit: 250,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-data': ['@tanstack/react-query', 'zustand', 'axios'],
+          'vendor-map': ['leaflet', 'react-leaflet'],
         },
       },
     },
   },
+
   test: {
     globals: true,
     environment: 'jsdom',
@@ -44,6 +50,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/test/'],
+      thresholds: {
+        lines: 70,
+        functions: 70,
+        branches: 60,
+        statements: 70,
+      },
     },
   },
 });
