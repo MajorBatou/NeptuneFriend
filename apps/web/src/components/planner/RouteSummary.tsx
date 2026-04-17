@@ -1,4 +1,4 @@
-import { usePlannerStore } from '@/store';
+import { useRouteStore } from '@/store';
 import { formatNauticalMiles } from '@/utils/sailing';
 import styles from './RouteSummary.module.css';
 
@@ -7,7 +7,7 @@ interface RouteSummaryProps {
 }
 
 export default function RouteSummary({ avgSpeed = 6 }: RouteSummaryProps) {
-  const { getDraftDistance, getDraftEstimatedTime, draftWaypoints } = usePlannerStore();
+  const { getDraftDistance, getDraftEstimatedTime, draftWaypoints } = useRouteStore();
 
   const distance = getDraftDistance();
   const hours = getDraftEstimatedTime(avgSpeed);

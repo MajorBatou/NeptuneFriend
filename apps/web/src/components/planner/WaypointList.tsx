@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { usePlannerStore } from '@/store';
+import { useRouteStore } from '@/store';
 import type { Waypoint } from '@/types';
 import styles from './WaypointList.module.css';
 
 export default function WaypointList() {
-  const { draftWaypoints, isDrafting, removeWaypoint, reorderWaypoints } = usePlannerStore();
+  const { draftWaypoints, isDrafting, removeWaypoint, reorderWaypoints } = useRouteStore();
 
   const [dragIdx, setDragIdx] = useState<number | null>(null);
 
