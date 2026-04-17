@@ -1,9 +1,10 @@
-import { Pool } from 'pg';
+import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
+const { Pool } = pg;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const pool = new Pool({
@@ -11,7 +12,7 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
-async function createMigrationsTable(client: Awaited<ReturnType<typeof pool.connect>>) {
+async function createMigrationsTable(client: pg.PoolClient) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       id SERIAL PRIMARY KEY,
@@ -21,9 +22,7 @@ async function createMigrationsTable(client: Awaited<ReturnType<typeof pool.conn
   `);
 }
 
-async function getAppliedMigrations(
-  client: Awaited<ReturnType<typeof pool.connect>>
-): Promise<string[]> {
+async function getAppliedMigrations(client: pg.PoolClient): Promise<string[]> {
   const result = await client.query<{ filename: string }>(
     'SELECT filename FROM schema_migrations ORDER BY id'
   );
@@ -55,7 +54,6 @@ async function runMigrations() {
     for (const file of pending) {
       const filePath = path.join(migrationsDir, file);
       const sql = fs.readFileSync(filePath, 'utf8');
-
       console.info(`Applying: ${file}`);
       await client.query('BEGIN');
       try {
