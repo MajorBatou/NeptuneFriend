@@ -1,0 +1,48 @@
+# Helm values for cert-manager
+# Install with:
+# helm repo add jetstack https://charts.jetstack.io
+# helm install cert-manager jetstack/cert-manager \
+#   --namespace cert-manager \
+#   --create-namespace \
+#   --version v1.14.5 \
+#   --values k8s/cluster-essentials/cert-manager/values.yaml
+
+# Install CRDs automatically
+crds:
+  enabled: true
+
+# Resource limits
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Prometheus metrics
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
+    prometheusInstance: kube-prometheus
+
+# Webhook
+webhook:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# CA injector
+cainjector:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
