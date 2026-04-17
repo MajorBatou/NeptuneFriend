@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { useRouteStore } from '@/store';
@@ -71,8 +71,10 @@ function RoutePolyline() {
 export default function RouteMap() {
   const { draftWaypoints, activeRouteId, routes, isDrawing, removeWaypoint } = useRouteStore();
   const activeRoute = routes.find((r) => r.id === activeRouteId);
-  const displayWaypoints =
-    draftWaypoints.length > 0 ? draftWaypoints : (activeRoute?.waypoints ?? []);
+  const displayWaypoints = useMemo(
+    () => (draftWaypoints.length > 0 ? draftWaypoints : (activeRoute?.waypoints ?? [])),
+    [draftWaypoints, activeRoute?.waypoints]
+  );
   const mapRef = useRef<L.Map | null>(null);
 
   // Fit map to waypoints when route is selected
