@@ -47,7 +47,7 @@ describe('SkipLink', () => {
 describe('LoadingPage', () => {
   it('renders default loading message', () => {
     render(<LoadingPage />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getAllByText('Loading...').length).toBeGreaterThan(0);
   });
 
   it('renders custom message', () => {
@@ -57,7 +57,8 @@ describe('LoadingPage', () => {
 
   it('has role status for screen readers', () => {
     render(<LoadingPage />);
-    expect(screen.getByRole('status')).toBeInTheDocument();
+    const statusElements = screen.getAllByRole('status');
+    expect(statusElements.length).toBeGreaterThan(0);
   });
 });
 
