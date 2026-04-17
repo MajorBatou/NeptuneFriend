@@ -23,7 +23,12 @@ spec:
         app: neptunefriend-api
         component: backend
         project: neptunefriend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+        prometheus.io/path: "/metrics"
     spec:
+      serviceAccountName: neptunefriend-api
       terminationGracePeriodSeconds: 30
       containers:
         - name: api

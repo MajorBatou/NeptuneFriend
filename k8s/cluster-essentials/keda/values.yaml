@@ -1,0 +1,30 @@
+# Helm values for KEDA
+# Install with:
+# helm repo add kedacore https://kedacore.github.io/charts
+# helm install keda kedacore/keda \
+#   --namespace keda \
+#   --create-namespace \
+#   --values k8s/cluster-essentials/keda/values.yaml
+
+resources:
+  operator:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  metricServer:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+prometheus:
+  operator:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring
