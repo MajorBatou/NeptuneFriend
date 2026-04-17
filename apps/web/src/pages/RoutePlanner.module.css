@@ -1,6 +1,6 @@
 .page {
   display: flex;
-  height: 100%;
+  height: calc(100vh - 60px);
   overflow: hidden;
 }
 
@@ -16,4 +16,5 @@
 .mapArea {
   flex: 1;
   min-width: 0;
+  height: 100%;
 }
