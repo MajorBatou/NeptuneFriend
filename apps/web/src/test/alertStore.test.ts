@@ -37,45 +37,39 @@ describe('AlertStore', () => {
   });
 
   it('marks all alerts as read', () => {
-    useAlertStore
-      .getState()
-      .addAlert({
-        userId: 'u1',
-        zoneId: 'z1',
-        zoneName: 'Zone',
-        type: 'wind',
-        severity: 'warning',
-        threshold: 25,
-        message: 'Msg 1',
-      });
-    useAlertStore
-      .getState()
-      .addAlert({
-        userId: 'u1',
-        zoneId: 'z1',
-        zoneName: 'Zone',
-        type: 'wave',
-        severity: 'critical',
-        threshold: 3,
-        message: 'Msg 2',
-      });
+    useAlertStore.getState().addAlert({
+      userId: 'u1',
+      zoneId: 'z1',
+      zoneName: 'Zone',
+      type: 'wind',
+      severity: 'warning',
+      threshold: 25,
+      message: 'Msg 1',
+    });
+    useAlertStore.getState().addAlert({
+      userId: 'u1',
+      zoneId: 'z1',
+      zoneName: 'Zone',
+      type: 'wave',
+      severity: 'critical',
+      threshold: 3,
+      message: 'Msg 2',
+    });
     useAlertStore.getState().markAllAsRead();
     expect(useAlertStore.getState().unreadCount).toBe(0);
     expect(useAlertStore.getState().alerts.every((a) => a.read)).toBe(true);
   });
 
   it('deletes an alert', () => {
-    useAlertStore
-      .getState()
-      .addAlert({
-        userId: 'u1',
-        zoneId: 'z1',
-        zoneName: 'Zone',
-        type: 'wind',
-        severity: 'info',
-        threshold: 15,
-        message: 'Test',
-      });
+    useAlertStore.getState().addAlert({
+      userId: 'u1',
+      zoneId: 'z1',
+      zoneName: 'Zone',
+      type: 'wind',
+      severity: 'info',
+      threshold: 15,
+      message: 'Test',
+    });
     const id = useAlertStore.getState().alerts[0].id;
     useAlertStore.getState().deleteAlert(id);
     expect(useAlertStore.getState().alerts).toHaveLength(0);
@@ -98,17 +92,15 @@ describe('AlertStore', () => {
   });
 
   it('clears all alerts', () => {
-    useAlertStore
-      .getState()
-      .addAlert({
-        userId: 'u1',
-        zoneId: 'z1',
-        zoneName: 'Zone',
-        type: 'wind',
-        severity: 'warning',
-        threshold: 25,
-        message: 'Test',
-      });
+    useAlertStore.getState().addAlert({
+      userId: 'u1',
+      zoneId: 'z1',
+      zoneName: 'Zone',
+      type: 'wind',
+      severity: 'warning',
+      threshold: 25,
+      message: 'Test',
+    });
     useAlertStore.getState().clearAllAlerts();
     expect(useAlertStore.getState().alerts).toHaveLength(0);
     expect(useAlertStore.getState().unreadCount).toBe(0);
