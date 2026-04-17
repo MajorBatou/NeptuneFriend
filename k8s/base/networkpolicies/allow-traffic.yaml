@@ -1,0 +1,146 @@
+---
+# Allow ingress to web from NGINX ingress controller only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-web
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+---
+# Allow ingress to API from web pods and ingress controller
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-to-api
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: neptunefriend-web
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 4000
+---
+# Allow API egress to external weather APIs and DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-external
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-api
+  policyTypes:
+    - Egress
+  egress:
+    # DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS to external APIs (OpenWeather, Windy, NOAA)
+    - ports:
+        - protocol: TCP
+          port: 443
+    # HTTP (redirect only)
+    - ports:
+        - protocol: TCP
+          port: 80
+---
+# Allow API egress to PostgreSQL
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-postgres
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-api
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 5432
+---
+# Allow API egress to Redis
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-api-egress-redis
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-api
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - protocol: TCP
+          port: 6379
+---
+# Allow Prometheus scraping of API metrics
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector:
+    matchLabels:
+      app: neptunefriend-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: prometheus
+      ports:
+        - protocol: TCP
+          port: 4000

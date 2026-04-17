@@ -1,0 +1,28 @@
+---
+# Default deny all ingress traffic in neptune-staging
+# All access must be explicitly allowed below
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Default deny all egress traffic in neptune-staging
+# Only allow explicitly permitted egress below
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress

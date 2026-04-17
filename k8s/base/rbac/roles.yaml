@@ -1,0 +1,115 @@
+---
+# Role: Developer — read-only access to neptune-staging
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: neptunefriend-developer
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "configmaps", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+---
+# Role: Ops — full access to neptune-staging, limited prod
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: neptunefriend-ops
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec", "services", "configmaps", "endpoints", "events"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses", "networkpolicies"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+# Role: CI Deployer — minimal permissions for CI/CD pipeline
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: neptunefriend-deployer
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+    role: deployer
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
+---
+# RoleBinding: Developer team → Developer role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: neptunefriend-developer-binding
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+subjects:
+  - kind: Group
+    name: neptunefriend:frontend
+    apiGroup: rbac.authorization.k8s.io
+  - kind: Group
+    name: neptunefriend:backend
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: neptunefriend-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# RoleBinding: Ops team → Ops role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: neptunefriend-ops-binding
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+subjects:
+  - kind: Group
+    name: neptunefriend:devops
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: neptunefriend-ops
+  apiGroup: rbac.authorization.k8s.io
+---
+# RoleBinding: CI deployer service account → Deployer role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: neptunefriend-deployer-binding
+  namespace: neptune-staging
+  labels:
+    project: neptunefriend
+subjects:
+  - kind: ServiceAccount
+    name: neptunefriend-deployer
+    namespace: neptune-staging
+roleRef:
+  kind: Role
+  name: neptunefriend-deployer
+  apiGroup: rbac.authorization.k8s.io
