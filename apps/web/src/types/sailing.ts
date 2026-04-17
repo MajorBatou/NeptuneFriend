@@ -1,5 +1,25 @@
 // Sailing data types for NeptuneFriend
 
+export type SeaState =
+  | 'glassy'
+  | 'calm'
+  | 'smooth'
+  | 'slight'
+  | 'moderate'
+  | 'rough'
+  | 'very-rough'
+  | 'high'
+  | 'very-high'
+  | 'phenomenal'
+  | 'confused';
+
+export interface SwellData {
+  height: number; // meters
+  period: number; // seconds
+  direction: number; // degrees (0-360)
+  steepness: number; // height/period ratio — >0.04 = breaking wave risk
+}
+
 export interface WindData {
   speed: number; // knots
   direction: number; // degrees (0-360)
@@ -8,10 +28,14 @@ export interface WindData {
 }
 
 export interface WaveData {
-  height: number; // meters
-  period: number; // seconds
-  direction: number; // degrees
-  swellHeight: number; // meters
+  height: number; // total significant wave height (meters)
+  period: number; // dominant period (seconds)
+  direction: number; // dominant direction (degrees)
+  primarySwell: SwellData;
+  secondarySwell?: SwellData;
+  seaState: SeaState;
+  confusedSea: boolean; // true when swells within 45° of each other
+  swellAngle?: number; // angle between primary and secondary swell
 }
 
 export interface TidalData {
@@ -32,6 +56,11 @@ export interface WeatherConditions {
   icon: string;
 }
 
+export interface ModelContribution {
+  model: string;
+  weight: number;
+}
+
 export interface SailingConditions {
   id: string;
   zoneId: string;
@@ -41,6 +70,7 @@ export interface SailingConditions {
   tides: TidalData;
   weather: WeatherConditions;
   safetyRating: 'safe' | 'caution' | 'danger';
+  models: ModelContribution[]; // which models contributed
   updatedAt: string;
 }
 
@@ -91,6 +121,7 @@ export interface Forecast {
   zoneId: string;
   points: ForecastPoint[];
   generatedAt: string;
+  models: string[]; // models used for this forecast
 }
 
 export interface Alert {
@@ -123,7 +154,6 @@ export interface UserPreferences {
   notificationsEnabled: boolean;
 }
 
-// Beaufort scale helper
 export const BEAUFORT_DESCRIPTIONS: Record<number, string> = {
   0: 'Calm',
   1: 'Light air',
@@ -138,6 +168,20 @@ export const BEAUFORT_DESCRIPTIONS: Record<number, string> = {
   10: 'Storm',
   11: 'Violent storm',
   12: 'Hurricane',
+};
+
+export const SEA_STATE_DESCRIPTIONS: Record<SeaState, string> = {
+  glassy: 'Glassy (0-0.1m)',
+  calm: 'Calm (0.1-0.5m)',
+  smooth: 'Smooth (0.5-1.25m)',
+  slight: 'Slight (1.25-2.5m)',
+  moderate: 'Moderate (2.5-4m)',
+  rough: 'Rough (4-6m)',
+  'very-rough': 'Very rough (6-9m)',
+  high: 'High (9-14m)',
+  'very-high': 'Very high (14m+)',
+  phenomenal: 'Phenomenal (>14m)',
+  confused: 'Confused seas',
 };
 
 export type SafetyRating = 'safe' | 'caution' | 'danger';

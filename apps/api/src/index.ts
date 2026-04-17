@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import 'dotenv/config';
 import authRoutes from './routes/auth.js';
+import weatherRoutes from './routes/weather.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
 import { checkConnection } from './db/pool.js';
 
@@ -10,7 +11,12 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '10kb' }));
 app.use(apiRateLimit);
 
@@ -25,14 +31,7 @@ app.get('/health', async (_req, res) => {
 });
 
 app.use('/auth', authRoutes);
-
-app.get('/weather/conditions/:zoneId', (_req, res) => {
-  res.json({ message: 'Weather conditions endpoint — Day 19 implementation' });
-});
-
-app.get('/weather/zones', (_req, res) => {
-  res.json({ message: 'Weather zones endpoint — Day 19 implementation' });
-});
+app.use('/weather', weatherRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({

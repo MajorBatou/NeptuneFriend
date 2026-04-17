@@ -46,10 +46,12 @@ export default function WaveCard({ waves }: WaveCardProps) {
           <span className={styles.detailLabel}>Direction</span>
           <span className={styles.detailValue}>{degreesToCompass(waves.direction)}</span>
         </div>
-        {waves.swellHeight > 0 && (
+        {waves.primarySwell.height > 0 && (
           <div className={styles.detail}>
             <span className={styles.detailLabel}>Swell</span>
-            <span className={styles.detailValue}>{formatWaveHeight(waves.swellHeight)}</span>
+            <span className={styles.detailValue}>
+              {formatWaveHeight(waves.primarySwell.height)}
+            </span>
           </div>
         )}
       </div>

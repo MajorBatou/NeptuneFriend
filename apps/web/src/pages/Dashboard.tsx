@@ -1,5 +1,7 @@
 import { Spinner, SkeletonCard } from '@/components/ui';
 import { ConditionsCard } from '@/components/sailing';
+import { WindRose, TidalFlow, ForecastTimeline, WeatherStrip } from '@/components/weather';
+import { SwellRose, SeaStateCard, ModelBadges } from '@/components/swell';
 import { useZones, useConditions } from '@/hooks';
 import { useSailingStore } from '@/store';
 import styles from './Dashboard.module.css';
@@ -14,7 +16,7 @@ export default function Dashboard() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>Sailing Dashboard</h1>
-        <p className={styles.subtitle}>Real-time conditions for your favourite zones</p>
+        <p className={styles.subtitle}>Real-time conditions — multi-model ensemble forecast</p>
       </header>
 
       <div className={styles.content}>
@@ -64,13 +66,61 @@ export default function Dashboard() {
               <p>Select a sailing zone to view conditions</p>
             </div>
           )}
+
           {selectedZoneId && conditionsLoading && (
             <div className={styles.loading}>
               <Spinner size="lg" label="Loading conditions..." />
             </div>
           )}
+
           {selectedZoneId && conditions && selectedZone && (
-            <ConditionsCard conditions={conditions} zoneName={selectedZone.name} />
+            <div className={styles.detailGrid}>
+              {/* Summary card */}
+              <div className={styles.summaryCard}>
+                <ConditionsCard conditions={conditions} zoneName={selectedZone.name} />
+                {conditions.models && conditions.models.length > 0 && (
+                  <div style={{ padding: '8px 16px 12px' }}>
+                    <ModelBadges models={conditions.models} />
+                  </div>
+                )}
+              </div>
+
+              {/* Wind Rose */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Wind</h3>
+                <WindRose wind={conditions.wind} size={180} />
+              </div>
+
+              {/* Swell Rose — primary + secondary */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Swell</h3>
+                <SwellRose waves={conditions.waves} size={180} />
+              </div>
+
+              {/* Sea State */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Sea state</h3>
+                <SeaStateCard waves={conditions.waves} modelCount={conditions.models?.length} />
+              </div>
+
+              {/* Tidal Flow */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Tides</h3>
+                <TidalFlow tides={conditions.tides} size="md" />
+              </div>
+
+              {/* Weather */}
+              <div className={styles.detailCard}>
+                <h3 className={styles.cardTitle}>Weather</h3>
+                <WeatherStrip weather={conditions.weather} />
+              </div>
+
+              {/* Forecast */}
+              <div className={styles.forecastCard}>
+                <h3 className={styles.cardTitle}>Forecast</h3>
+                <ForecastTimeline zoneId={selectedZoneId} />
+              </div>
+            </div>
           )}
         </main>
       </div>
