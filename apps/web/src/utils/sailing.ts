@@ -124,3 +124,33 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
+
+// Calculate angle between two swell directions
+export function swellAngle(dir1: number, dir2: number): number {
+  const diff = Math.abs(dir1 - dir2);
+  return diff > 180 ? 360 - diff : diff;
+}
+
+// Check if two swells create confused seas
+export function isConfusedSea(dir1: number, dir2: number): boolean {
+  return swellAngle(dir1, dir2) < 45;
+}
+
+// Calculate significant wave height from two swells
+export function significantWaveHeight(h1: number, h2: number): number {
+  return Math.round(Math.sqrt(h1 ** 2 + h2 ** 2) * 10) / 10;
+}
+
+// Get sea state from wave height
+export function getSeaState(height: number, confused = false): string {
+  if (confused) return 'confused';
+  if (height < 0.1) return 'glassy';
+  if (height < 0.5) return 'calm';
+  if (height < 1.25) return 'smooth';
+  if (height < 2.5) return 'slight';
+  if (height < 4) return 'moderate';
+  if (height < 6) return 'rough';
+  if (height < 9) return 'very-rough';
+  if (height < 14) return 'high';
+  return 'phenomenal';
+}
