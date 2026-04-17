@@ -1,0 +1,175 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ocean-deep);
+  margin: 0;
+}
+
+.unreadBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-ocean-light);
+  color: white;
+}
+
+.headerActions {
+  display: flex;
+  gap: 6px;
+}
+
+.list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  background: white;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.item:hover {
+  background: #fafafa;
+}
+
+.itemUnread {
+  border-left: 3px solid var(--color-ocean-light);
+  background: #f8faff;
+}
+
+.severityIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.zoneName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ocean-deep);
+}
+.severity {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.message {
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 5px;
+  line-height: 1.4;
+}
+
+.meta {
+  display: flex;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.metaSep {
+  color: #cbd5e1;
+}
+.alertType {
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-ocean-light);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: #94a3b8;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  color: var(--color-wind-strong);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 8px;
+}
+
+.emptyText {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+  margin: 0;
+}
+.emptySubText {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
