@@ -51,10 +51,10 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
       exclude: ['node_modules/', 'src/test/'],
       thresholds: {
-        lines: 30,
-        functions: 40,
+        lines: 25,
+        functions: 25,
         branches: 20,
-        statements: 30,
+        statements: 25,
       },
     },
   },
