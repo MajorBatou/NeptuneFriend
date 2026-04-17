@@ -1,0 +1,222 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-ocean-deep);
+  margin: 0;
+}
+
+.form {
+  background: var(--color-sea-foam);
+  border: 1px solid rgba(45, 125, 210, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.select {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--color-ocean-deep);
+  background: white;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-ocean-light);
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.typeBtn {
+  padding: 6px 4px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  background: white;
+  color: #64748b;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.typeBtn:hover {
+  background: var(--color-sea-foam);
+}
+
+.typeBtnActive {
+  background: var(--color-ocean-light);
+  color: white;
+  border-color: var(--color-ocean-light);
+}
+
+.thresholdRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider {
+  flex: 1;
+}
+
+.thresholdValue {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ocean-deep);
+  min-width: 60px;
+  text-align: right;
+}
+
+.empty {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 24px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.configList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.configItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-lg);
+  background: white;
+  gap: 8px;
+}
+
+.configInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.configHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 3px;
+}
+
+.configZone {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ocean-deep);
+}
+
+.configBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.configBadgeActive {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.configBadgeInactive {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.configMeta {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.configType {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.configSep {
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.configThreshold {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.configActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.actionBtn:hover {
+  background: var(--color-sea-foam);
+  color: var(--color-ocean-deep);
+}
+
+.actionBtnDanger:hover {
+  color: var(--color-wind-strong);
+}

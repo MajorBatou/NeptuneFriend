@@ -2,6 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store';
 import { useOfflineDetector } from '@/hooks';
 import OfflineBanner from '@/components/ui/OfflineBanner';
+import { AlertBell } from '@/components/alerts';
 import styles from './AppLayout.module.css';
 
 export default function AppLayout() {
@@ -11,7 +12,6 @@ export default function AppLayout() {
   return (
     <div className={styles.layout}>
       <OfflineBanner />
-
       <nav className={styles.nav}>
         <div className={styles.navBrand}>
           <span className={styles.anchor}>⚓</span>
@@ -46,6 +46,7 @@ export default function AppLayout() {
         </div>
 
         <div className={styles.navUser}>
+          <AlertBell />
           {user && (
             <>
               <span className={styles.userName}>{user.name}</span>
