@@ -1,0 +1,30 @@
+---
+# PodDisruptionBudget for API — always keep at least 1 pod running
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: neptunefriend-api-pdb
+  namespace: neptune-staging
+  labels:
+    app: neptunefriend-api
+    project: neptunefriend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: neptunefriend-api
+---
+# PodDisruptionBudget for web — always keep at least 1 pod running
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: neptunefriend-web-pdb
+  namespace: neptune-staging
+  labels:
+    app: neptunefriend-web
+    project: neptunefriend
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: neptunefriend-web

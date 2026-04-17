@@ -24,6 +24,7 @@ spec:
         component: frontend
         project: neptunefriend
     spec:
+      serviceAccountName: neptunefriend-web
       terminationGracePeriodSeconds: 30
       containers:
         - name: web
@@ -54,5 +55,4 @@ spec:
             periodSeconds: 10
             failureThreshold: 3
           securityContext:
-            runAsNonRoot: false
             allowPrivilegeEscalation: false
