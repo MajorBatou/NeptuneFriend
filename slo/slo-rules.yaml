@@ -1,0 +1,142 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: neptunefriend-slo-rules
+  namespace: monitoring
+  labels:
+    app: neptunefriend
+    prometheus: kube-prometheus-stack
+    role: slo-rules
+spec:
+  groups:
+    - name: neptunefriend.slo.availability
+      interval: 30s
+      rules:
+        # 5-minute error rate
+        - record: neptunefriend:availability:ratio_rate5m
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod",
+              status!~"5.."
+            }[5m])) /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod"
+            }[5m]))
+
+        # 30-minute error rate
+        - record: neptunefriend:availability:ratio_rate30m
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod",
+              status!~"5.."
+            }[30m])) /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod"
+            }[30m]))
+
+        # 1-hour error rate
+        - record: neptunefriend:availability:ratio_rate1h
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod",
+              status!~"5.."
+            }[1h])) /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod"
+            }[1h]))
+
+        # 6-hour error rate
+        - record: neptunefriend:availability:ratio_rate6h
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod",
+              status!~"5.."
+            }[6h])) /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-prod"
+            }[6h]))
+
+        # 30-day error budget remaining
+        - record: neptunefriend:error_budget:remaining
+          expr: |
+            1 - (
+              (1 - neptunefriend:availability:ratio_rate30m) /
+              (1 - 0.999)
+            )
+
+    - name: neptunefriend.slo.latency
+      interval: 30s
+      rules:
+        # p95 latency 5m
+        - record: neptunefriend:latency_p95:rate5m
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{
+                namespace="neptune-prod"
+              }[5m])) by (le)
+            )
+
+        # p99 latency 5m
+        - record: neptunefriend:latency_p99:rate5m
+          expr: |
+            histogram_quantile(0.99,
+              sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{
+                namespace="neptune-prod"
+              }[5m])) by (le)
+            )
+
+    - name: neptunefriend.slo.burn_rate_alerts
+      interval: 1m
+      rules:
+        # Fast burn alert — page immediately
+        - alert: NeptuneFriendFastBurn
+          expr: |
+            (
+              (1 - neptunefriend:availability:ratio_rate5m) /
+              (1 - 0.999)
+            ) > 14.4
+            and
+            (
+              (1 - neptunefriend:availability:ratio_rate1h) /
+              (1 - 0.999)
+            ) > 14.4
+          for: 2m
+          labels:
+            severity: critical
+            slo: availability
+            burn_rate: fast
+          annotations:
+            summary: "SLO fast burn — error budget depleting rapidly"
+            description: "Burning error budget 14.4x faster than allowed. At this rate the 30-day budget will be exhausted in 2 hours."
+
+        # Slow burn alert — warning
+        - alert: NeptuneFriendSlowBurn
+          expr: |
+            (
+              (1 - neptunefriend:availability:ratio_rate30m) /
+              (1 - 0.999)
+            ) > 6
+            and
+            (
+              (1 - neptunefriend:availability:ratio_rate6h) /
+              (1 - 0.999)
+            ) > 6
+          for: 15m
+          labels:
+            severity: warning
+            slo: availability
+            burn_rate: slow
+          annotations:
+            summary: "SLO slow burn — error budget depleting"
+            description: "Burning error budget 6x faster than allowed. At this rate the 30-day budget will be exhausted in 5 days."
+
+        # Latency SLO alert
+        - alert: NeptuneFriendLatencySLOBreach
+          expr: neptunefriend:latency_p95:rate5m > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            slo: latency
+          annotations:
+            summary: "Latency SLO breach — p95 above 500ms"
+            description: "95th percentile latency is {{ $value | humanizeDuration }} — above the 500ms SLO target."

@@ -1,0 +1,204 @@
+{
+  "title": "NeptuneFriend — SLO Dashboard",
+  "uid": "neptunefriend-slo",
+  "tags": ["neptunefriend", "slo"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": { "from": "now-30d", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Availability SLO — 30 day (target: 99.9%)",
+      "type": "gauge",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        {
+          "expr": "neptunefriend:availability:ratio_rate30m * 100",
+          "legendFormat": "Availability %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 99,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 99 },
+              { "color": "yellow", "value": 99.5 },
+              { "color": "green", "value": 99.9 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Error Budget Remaining",
+      "type": "gauge",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        {
+          "expr": "neptunefriend:error_budget:remaining * 100",
+          "legendFormat": "Budget remaining %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 10 },
+              { "color": "yellow", "value": 25 },
+              { "color": "green", "value": 50 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Latency SLO — p95 (target: < 500ms)",
+      "type": "gauge",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        {
+          "expr": "neptunefriend:latency_p95:rate5m * 1000",
+          "legendFormat": "p95 latency ms"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 300 },
+              { "color": "red", "value": 500 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Latency SLO — p99 (target: < 2s)",
+      "type": "gauge",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 6 },
+      "targets": [
+        {
+          "expr": "neptunefriend:latency_p99:rate5m * 1000",
+          "legendFormat": "p99 latency ms"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 2000 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Availability over time",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "neptunefriend:availability:ratio_rate5m * 100",
+          "legendFormat": "5m availability"
+        },
+        {
+          "expr": "neptunefriend:availability:ratio_rate1h * 100",
+          "legendFormat": "1h availability"
+        },
+        {
+          "expr": "vector(99.9)",
+          "legendFormat": "SLO target (99.9%)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 98,
+          "max": 100,
+          "custom": {
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "SLO target (99.9%)" },
+            "properties": [
+              { "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } },
+              { "id": "custom.lineStyle", "value": { "dash": [4, 4], "fill": "dash" } }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "title": "Error Budget Burn Rate",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "(1 - neptunefriend:availability:ratio_rate5m) / (1 - 0.999)",
+          "legendFormat": "5m burn rate"
+        },
+        {
+          "expr": "(1 - neptunefriend:availability:ratio_rate1h) / (1 - 0.999)",
+          "legendFormat": "1h burn rate"
+        },
+        {
+          "expr": "vector(1)",
+          "legendFormat": "Normal burn rate"
+        },
+        {
+          "expr": "vector(14.4)",
+          "legendFormat": "Fast burn threshold"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "id": 7,
+      "title": "Latency percentiles over time",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "neptunefriend:latency_p95:rate5m * 1000",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "neptunefriend:latency_p99:rate5m * 1000",
+          "legendFormat": "p99"
+        },
+        {
+          "expr": "vector(500)",
+          "legendFormat": "p95 SLO target (500ms)"
+        },
+        {
+          "expr": "vector(2000)",
+          "legendFormat": "p99 SLO target (2s)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ms" }
+      }
+    }
+  ]
+}
