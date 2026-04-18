@@ -1,0 +1,90 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to promote to production'
+        required: true
+        type: string
+      confirm:
+        description: 'Type DEPLOY to confirm production deployment'
+        required: true
+        type: string
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "Confirmation failed — type DEPLOY to proceed"
+            exit 1
+          fi
+
+  deploy-production:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig \
+            --region us-east-1 \
+            --name neptunefriend-staging
+
+      - name: Run smoke tests on staging
+        run: |
+          READY=$(kubectl get deployment neptunefriend-api \
+            -n neptune-staging \
+            -o jsonpath='{.status.readyReplicas}')
+          if [ "$READY" -lt "1" ]; then
+            echo "Staging unhealthy — aborting"
+            exit 1
+          fi
+          echo "Staging healthy: $READY replicas"
+
+      - name: Apply production manifests
+        run: |
+          kubectl apply -f k8s/prod/deployments.yaml
+          kubectl apply -f k8s/prod/services.yaml
+          kubectl apply -f k8s/prod/ingress.yaml
+
+      - name: Update image tags
+        run: |
+          kubectl set image deployment/neptunefriend-api \
+            api=ghcr.io/majorbatou/neptunefriend-api:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod
+
+          kubectl set image deployment/neptunefriend-web \
+            web=ghcr.io/majorbatou/neptunefriend-web:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/neptunefriend-api \
+            -n neptune-prod --timeout=300s
+          kubectl rollout status deployment/neptunefriend-web \
+            -n neptune-prod --timeout=300s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n neptune-prod
+          kubectl get hpa -n neptune-prod
+
+      - name: Notify success
+        run: |
+          echo "Production deployment successful!"
+          echo "Tag: ${{ github.event.inputs.image_tag }}"
+          echo "Time: $(date -u)"
