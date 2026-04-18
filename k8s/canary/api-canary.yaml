@@ -1,0 +1,124 @@
+---
+# Canary deployment — runs alongside stable production
+# Traffic split: 90% stable / 10% canary (controlled by replica ratio)
+#
+# How it works:
+# - Stable deployment: 9 replicas with label version=stable
+# - Canary deployment: 1 replica with label version=canary
+# - Service selects BOTH via app=neptunefriend-api (no version label)
+# - Kubernetes load balances proportionally to replica count = 90/10 split
+#
+# To promote: scale canary to 9, scale stable to 0, update stable image, reverse
+# To rollback: scale canary to 0
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neptunefriend-api-canary
+  namespace: neptune-prod
+  labels:
+    app: neptunefriend-api
+    version: canary
+    project: neptunefriend
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    neptunefriend.io/canary: "true"
+    neptunefriend.io/canary-weight: "10"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neptunefriend-api
+      version: canary
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: neptunefriend-api
+        version: canary
+        project: neptunefriend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "4000"
+        prometheus.io/path: "/metrics"
+        neptunefriend.io/canary: "true"
+    spec:
+      serviceAccountName: neptunefriend-api
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: api
+          # Canary image — set to new version being tested
+          image: ghcr.io/majorbatou/neptunefriend-api:canary
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 4000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "4000"
+            - name: CANARY
+              value: "true"
+            - name: CORS_ORIGIN
+              value: "https://neptunefriend.app"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: REDIS_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: JWT_SECRET
+            - name: OPENWEATHER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: OPENWEATHER_API_KEY
+            - name: WORLDTIDES_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: WORLDTIDES_API_KEY
+            - name: METOFFICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: METOFFICE_API_KEY
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true

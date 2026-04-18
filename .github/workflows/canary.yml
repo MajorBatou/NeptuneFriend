@@ -1,0 +1,100 @@
+name: Canary Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy as canary'
+        required: true
+        type: string
+      action:
+        description: 'Canary action'
+        required: true
+        type: choice
+        options:
+          - deploy
+          - promote
+          - rollback
+          - status
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig \
+            --region us-east-1 \
+            --name neptunefriend-staging
+
+      - name: Check canary status before action
+        run: |
+          echo "Current deployment status:"
+          kubectl get pods -n neptune-prod -l app=neptunefriend-api
+          kubectl get pods -n neptune-prod -l version=canary || echo "No canary running"
+
+      - name: Deploy canary (10% traffic)
+        if: github.event.inputs.action == 'deploy'
+        run: |
+          # Update canary image
+          kubectl set image deployment/neptunefriend-api-canary \
+            api=ghcr.io/majorbatou/neptunefriend-api:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod 2>/dev/null || \
+          kubectl apply -f k8s/canary/api-canary.yaml
+
+          kubectl set image deployment/neptunefriend-web-canary \
+            web=ghcr.io/majorbatou/neptunefriend-web:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod 2>/dev/null || \
+          kubectl apply -f k8s/canary/web-canary.yaml
+
+          # Wait for canary
+          kubectl wait --for=condition=available \
+            deployment/neptunefriend-api-canary \
+            -n neptune-prod --timeout=120s
+
+          echo "Canary deployed at 10% traffic"
+          echo "Monitor for 30 minutes then promote or rollback"
+
+      - name: Promote canary to 100%
+        if: github.event.inputs.action == 'promote'
+        run: |
+          # Update stable to new image
+          kubectl set image deployment/neptunefriend-api \
+            api=ghcr.io/majorbatou/neptunefriend-api:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod
+
+          kubectl set image deployment/neptunefriend-web \
+            web=ghcr.io/majorbatou/neptunefriend-web:${{ github.event.inputs.image_tag }} \
+            -n neptune-prod
+
+          kubectl rollout status deployment/neptunefriend-api \
+            -n neptune-prod --timeout=300s
+
+          # Remove canary
+          kubectl delete -f k8s/canary/api-canary.yaml --ignore-not-found
+          kubectl delete -f k8s/canary/web-canary.yaml --ignore-not-found
+
+          echo "Promotion complete"
+
+      - name: Rollback canary
+        if: github.event.inputs.action == 'rollback'
+        run: |
+          kubectl delete -f k8s/canary/api-canary.yaml --ignore-not-found
+          kubectl delete -f k8s/canary/web-canary.yaml --ignore-not-found
+          echo "Canary rolled back — 100% traffic to stable"
+
+      - name: Final status
+        run: |
+          kubectl get pods -n neptune-prod
+          kubectl get deployments -n neptune-prod

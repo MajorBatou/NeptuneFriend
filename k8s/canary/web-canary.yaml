@@ -1,0 +1,66 @@
+---
+# Canary deployment for web frontend
+# Traffic split: 90% stable / 10% canary
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neptunefriend-web-canary
+  namespace: neptune-prod
+  labels:
+    app: neptunefriend-web
+    version: canary
+    project: neptunefriend
+  annotations:
+    neptunefriend.io/canary: "true"
+    neptunefriend.io/canary-weight: "10"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neptunefriend-web
+      version: canary
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: neptunefriend-web
+        version: canary
+        project: neptunefriend
+      annotations:
+        neptunefriend.io/canary: "true"
+    spec:
+      serviceAccountName: neptunefriend-web
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: web
+          image: ghcr.io/majorbatou/neptunefriend-web:canary
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
