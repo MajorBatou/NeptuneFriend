@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { useSailingStore } from '@/store';
 import { useZones } from '@/hooks';
@@ -21,14 +21,10 @@ L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 function MapStateSync() {
   const { mapCenter, mapZoom, setMapCenter, setMapZoom } = useSailingStore();
   const map = useMap();
-  const isSyncing = useRef(false);
 
   useEffect(() => {
-    if (isSyncing.current) return;
-    isSyncing.current = true;
-    map.setView([mapCenter.lat, mapCenter.lng], mapZoom);
-    isSyncing.current = false;
-  }, [map, mapCenter, mapZoom]);
+    map.setView([mapCenter.lat, mapCenter.lng], mapZoom, { animate: false });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const onMoveEnd = () => {
@@ -44,7 +40,6 @@ function MapStateSync() {
 
   return null;
 }
-
 interface SailingMapProps {
   showWindOverlay?: boolean;
   height?: string;

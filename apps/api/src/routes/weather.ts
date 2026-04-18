@@ -21,7 +21,7 @@ router.get('/zones', async (_req: Request, res: Response) => {
 
     // Fetch conditions for all zones in parallel (with timeout)
     const zonesWithConditions = await Promise.all(
-      zones.map(async (zone) => {
+      zones.slice(0, 10).map(async (zone) => {
         try {
           const cachedConditions = await weatherCache.getConditions(zone.id);
           if (cachedConditions) {
@@ -30,7 +30,7 @@ router.get('/zones', async (_req: Request, res: Response) => {
 
           const conditions = await Promise.race([
             aggregator.getConditions(zone.lat, zone.lng),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
           ]);
 
           await weatherCache.setConditions(zone.id, JSON.stringify(conditions));
