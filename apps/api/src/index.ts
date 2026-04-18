@@ -5,6 +5,7 @@ import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import weatherRoutes from './routes/weather.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
+import { metricsMiddleware, getMetrics } from './middleware/metrics.js';
 import { checkConnection } from './db/pool.js';
 
 const app = express();
@@ -18,8 +19,10 @@ app.use(
   })
 );
 app.use(express.json({ limit: '10kb' }));
+app.use(metricsMiddleware);
 app.use(apiRateLimit);
 
+// Health check
 app.get('/health', async (_req, res) => {
   const dbConnected = await checkConnection();
   res.json({
@@ -28,6 +31,12 @@ app.get('/health', async (_req, res) => {
     database: dbConnected ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
   });
+});
+
+// Prometheus metrics endpoint
+app.get('/metrics', (_req, res) => {
+  res.set('Content-Type', 'text/plain; version=0.0.4');
+  res.send(getMetrics());
 });
 
 app.use('/auth', authRoutes);
@@ -54,6 +63,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 
 app.listen(PORT, () => {
   console.info(`NeptuneFriend API running on port ${PORT}`);
+  console.info(`Metrics available at http://localhost:${PORT}/metrics`);
 });
 
 export default app;

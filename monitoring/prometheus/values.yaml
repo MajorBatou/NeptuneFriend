@@ -1,0 +1,142 @@
+# Helm values for kube-prometheus-stack
+# Install with:
+# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#   --namespace monitoring \
+#   --create-namespace \
+#   --values monitoring/prometheus/values.yaml
+
+# Global settings
+fullnameOverride: kube-prometheus-stack
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    # Retention
+    retention: 15d
+    retentionSize: "10GB"
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+
+    # Scrape interval
+    scrapeInterval: "30s"
+    evaluationInterval: "30s"
+
+    # Storage
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+    # Auto-discover ServiceMonitors from all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    # Additional scrape configs for NeptuneFriend
+    additionalScrapeConfigs:
+      - job_name: 'neptunefriend-api'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - neptune-staging
+                - neptune-prod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+# Grafana configuration
+grafana:
+  enabled: true
+  adminPassword: "neptune-grafana-admin"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  persistence:
+    enabled: true
+    storageClassName: gp2
+    size: 5Gi
+
+  # Pre-load NeptuneFriend dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'neptunefriend'
+          orgId: 1
+          folder: 'NeptuneFriend'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/neptunefriend
+
+  dashboardsConfigMaps:
+    neptunefriend: "neptunefriend-grafana-dashboards"
+
+  grafana.ini:
+    server:
+      root_url: "https://grafana.neptunefriend.app"
+    auth:
+      disable_login_form: false
+    auth.anonymous:
+      enabled: false
+
+# Alertmanager
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp2
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+# Node exporter
+nodeExporter:
+  enabled: true
+
+# Kube state metrics
+kubeStateMetrics:
+  enabled: true

@@ -1,0 +1,132 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: neptunefriend-alerts
+  namespace: monitoring
+  labels:
+    app: neptunefriend
+    prometheus: kube-prometheus-stack
+    role: alert-rules
+spec:
+  groups:
+    - name: neptunefriend.api
+      interval: 30s
+      rules:
+        # API availability
+        - alert: NeptuneFriendAPIDown
+          expr: |
+            sum(up{job="neptunefriend-api"}) == 0
+          for: 1m
+          labels:
+            severity: critical
+            team: devops
+          annotations:
+            summary: "NeptuneFriend API is down"
+            description: "All API instances are unreachable for more than 1 minute."
+
+        # High error rate
+        - alert: NeptuneFriendHighErrorRate
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-staging",
+              status=~"5.."
+            }[5m])) /
+            sum(rate(nginx_ingress_controller_requests{
+              namespace="neptune-staging"
+            }[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: "High API error rate"
+            description: "Error rate is above 5% for the last 5 minutes."
+
+        # High latency
+        - alert: NeptuneFriendHighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{
+                namespace="neptune-staging"
+              }[5m])) by (le)
+            ) > 2
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: "High API latency"
+            description: "95th percentile latency is above 2 seconds."
+
+        # Pod restarts
+        - alert: NeptuneFriendPodRestarting
+          expr: |
+            increase(kube_pod_container_status_restarts_total{
+              namespace=~"neptune-.*"
+            }[1h]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: "Pod restarting frequently"
+            description: "Pod {{ $labels.pod }} has restarted more than 3 times in the last hour."
+
+        # High memory usage
+        - alert: NeptuneFriendHighMemory
+          expr: |
+            container_memory_usage_bytes{
+              namespace=~"neptune-.*",
+              container!=""
+            } /
+            container_spec_memory_limit_bytes{
+              namespace=~"neptune-.*",
+              container!=""
+            } > 0.85
+          for: 5m
+          labels:
+            severity: warning
+            team: devops
+          annotations:
+            summary: "High memory usage"
+            description: "Container {{ $labels.container }} memory usage is above 85%."
+
+    - name: neptunefriend.weather
+      interval: 60s
+      rules:
+        # Weather API cache miss rate
+        - alert: WeatherCacheHitRateLow
+          expr: |
+            sum(rate(neptunefriend_weather_cache_miss_total[5m])) /
+            sum(rate(neptunefriend_weather_requests_total[5m])) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+            team: backend
+          annotations:
+            summary: "Weather cache hit rate is low"
+            description: "More than 50% of weather requests are cache misses — Redis may be down."
+
+    - name: neptunefriend.slo
+      interval: 60s
+      rules:
+        # SLO — 99.9% availability
+        - alert: SLOAvailabilityBreach
+          expr: |
+            (1 - (
+              sum(rate(nginx_ingress_controller_requests{
+                namespace="neptune-prod",
+                status!~"5.."
+              }[30m])) /
+              sum(rate(nginx_ingress_controller_requests{
+                namespace="neptune-prod"
+              }[30m]))
+            )) > 0.001
+          for: 5m
+          labels:
+            severity: critical
+            team: devops
+            slo: availability
+          annotations:
+            summary: "SLO breach — availability below 99.9%"
+            description: "Production error rate exceeds SLO threshold."
