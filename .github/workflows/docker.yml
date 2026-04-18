@@ -14,8 +14,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  WEB_IMAGE: ghcr.io/${{ github.repository_owner_lc }}/neptunefriend-web
-  API_IMAGE: ghcr.io/${{ github.repository_owner_lc }}/neptunefriend-api
+  WEB_IMAGE: ghcr.io/${{ github.actor }}/neptunefriend-web
+  API_IMAGE: ghcr.io/${{ github.actor }}/neptunefriend-api
 
 jobs:
   build-web:
