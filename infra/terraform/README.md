@@ -94,3 +94,13 @@ Use your AWS free credits. Remember to `terraform destroy` when not working on t
 cd environments/staging
 terraform destroy
 ```
+
+## EKS Version Policy
+
+Always use the latest stable EKS version. AWS supports N-3 minor versions.
+Check current supported versions: https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html
+
+**Important:** AWS requires upgrading one minor version at a time:
+1.29 → 1.30 → 1.31 → 1.32
+
+Update `terraform.tfvars` and apply incrementally.
