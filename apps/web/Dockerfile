@@ -20,7 +20,8 @@ ENV VITE_MAPBOX_TOKEN=$VITE_MAPBOX_TOKEN
 RUN npm -w apps/web run build
 
 # Stage 2: Production nginx server
-FROM nginx:1.27-alpine AS runner
+FROM nginx:1.27-alpine3.21 AS runner
+RUN apk update && apk upgrade --no-cache
 
 RUN rm /etc/nginx/conf.d/default.conf
 
