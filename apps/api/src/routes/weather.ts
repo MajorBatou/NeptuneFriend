@@ -7,39 +7,45 @@ import { apiRateLimit } from '../middleware/rateLimit.js';
 
 const router = Router();
 const aggregator = new WeatherAggregator();
+const BATCH_SIZE = 10;
 
 // GET /weather/zones — all zones with cached conditions
 router.get('/zones', async (_req: Request, res: Response) => {
   try {
-    // Check cache
+    // Check full zones cache first
     const cached = await weatherCache.getZones();
     if (cached) {
       return res.json(JSON.parse(cached));
     }
 
     const zones = await ZoneModel.findAll();
+    const zonesWithConditions: unknown[] = [];
 
-    // Fetch conditions for all zones in parallel (with timeout)
-    const zonesWithConditions = await Promise.all(
-      zones.slice(0, 10).map(async (zone) => {
-        try {
-          const cachedConditions = await weatherCache.getConditions(zone.id);
-          if (cachedConditions) {
-            return { ...zone, conditions: JSON.parse(cachedConditions) };
+    // Fetch conditions in batches of 10 to avoid overloading providers
+    for (let i = 0; i < zones.length; i += BATCH_SIZE) {
+      const batch = zones.slice(i, i + BATCH_SIZE);
+      const results = await Promise.all(
+        batch.map(async (zone) => {
+          try {
+            const cachedConditions = await weatherCache.getConditions(zone.id);
+            if (cachedConditions) {
+              return { ...zone, conditions: JSON.parse(cachedConditions) };
+            }
+
+            const conditions = await Promise.race([
+              aggregator.getConditions(zone.lat, zone.lng),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
+            ]);
+
+            await weatherCache.setConditions(zone.id, JSON.stringify(conditions));
+            return { ...zone, conditions };
+          } catch {
+            return { ...zone, conditions: null };
           }
-
-          const conditions = await Promise.race([
-            aggregator.getConditions(zone.lat, zone.lng),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 15000)),
-          ]);
-
-          await weatherCache.setConditions(zone.id, JSON.stringify(conditions));
-          return { ...zone, conditions };
-        } catch {
-          return { ...zone, conditions: null };
-        }
-      })
-    );
+        })
+      );
+      zonesWithConditions.push(...results);
+    }
 
     const response = {
       data: zonesWithConditions,
@@ -175,7 +181,7 @@ router.get('/nearest', async (req: Request, res: Response) => {
   }
 });
 
-// POST /weather/conditions/bulk (protected — needs auth)
+// POST /weather/conditions/bulk (protected)
 router.post(
   '/conditions/bulk',
   authMiddleware,

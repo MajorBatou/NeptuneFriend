@@ -11,9 +11,9 @@ redis.on('error', () => {
 });
 
 const CACHE_TTL = {
-  conditions: 5 * 60, // 5 minutes
-  forecast: 30 * 60, // 30 minutes
-  zones: 60 * 60, // 1 hour
+  conditions: 60 * 60, // 1 hour
+  forecast: 12 * 60 * 60, // 12 hours
+  zones: 24 * 60 * 60, // 24 hours
 };
 
 export const weatherCache = {
@@ -71,6 +71,7 @@ export const weatherCache = {
       await redis.del(`forecast:${zoneId}:24`);
       await redis.del(`forecast:${zoneId}:72`);
       await redis.del(`forecast:${zoneId}:168`);
+      await redis.del('zones:all');
     } catch {
       // Non-fatal
     }
