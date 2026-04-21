@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,17 +6,15 @@ metadata:
   namespace: neptune-staging
   labels:
     app: neptunefriend-api
-    component: backend
     project: neptunefriend
 spec:
-  type: ClusterIP
   selector:
     app: neptunefriend-api
   ports:
-    - name: http
-      port: 4000
+    - port: 4000
       targetPort: 4000
-      protocol: TCP
+      name: http
+  type: LoadBalancer
 ---
 apiVersion: v1
 kind: Service
@@ -24,14 +23,12 @@ metadata:
   namespace: neptune-staging
   labels:
     app: neptunefriend-web
-    component: frontend
     project: neptunefriend
 spec:
-  type: ClusterIP
   selector:
     app: neptunefriend-web
   ports:
-    - name: http
-      port: 80
+    - port: 80
       targetPort: 80
-      protocol: TCP
+      name: http
+  type: LoadBalancer

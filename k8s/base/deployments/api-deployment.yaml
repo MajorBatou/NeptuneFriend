@@ -28,11 +28,10 @@ spec:
         prometheus.io/port: "4000"
         prometheus.io/path: "/metrics"
     spec:
-      serviceAccountName: neptunefriend-api
       terminationGracePeriodSeconds: 30
       containers:
         - name: api
-          image: ghcr.io/majorbatou/neptunefriend-api:staging
+          image: ghcr.io/majorbatou/neptunefriend-api:develop
           imagePullPolicy: Always
           ports:
             - containerPort: 4000
@@ -43,25 +42,31 @@ spec:
             - name: PORT
               value: "4000"
             - name: CORS_ORIGIN
-              valueFrom:
-                configMapKeyRef:
-                  name: neptunefriend-config
-                  key: WEB_URL
+              value: "*"
             - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: neptunefriend-secrets
-                  key: DATABASE_URL
+              value: "postgresql://neptune:neptune@postgres:5432/neptunefriend"
             - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: neptunefriend-secrets
-                  key: REDIS_URL
+                  key: JWT_SECRET
             - name: OPENWEATHER_API_KEY
               valueFrom:
                 secretKeyRef:
                   name: neptunefriend-secrets
                   key: OPENWEATHER_API_KEY
+            - name: WORLDTIDES_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: WORLDTIDES_API_KEY
+            - name: METOFFICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: neptunefriend-secrets
+                  key: METOFFICE_API_KEY
           resources:
             requests:
               cpu: "100m"
@@ -73,18 +78,13 @@ spec:
             httpGet:
               path: /health
               port: 4000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 20
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: 4000
-            initialDelaySeconds: 5
+            initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 3
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
