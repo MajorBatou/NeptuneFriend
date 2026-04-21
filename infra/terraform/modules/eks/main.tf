@@ -101,3 +101,10 @@ resource "aws_eks_node_group" "main" {
     Name = "${var.project}-${var.environment}-node-group"
   }
 }
+
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "aws-ebs-csi-driver"
+
+  depends_on = [aws_eks_node_group.main]
+}
