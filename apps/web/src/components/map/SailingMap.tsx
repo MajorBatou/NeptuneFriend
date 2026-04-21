@@ -28,7 +28,7 @@ function MapStateSync() {
       duration: 1.2,
       animate: true,
     });
-  }, [mapCenter.lat, mapCenter.lng, mapZoom]);
+  }, [map, mapCenter.lat, mapCenter.lng, mapZoom]);
 
   // Sync map position back to store on user interaction
   useEffect(() => {
