@@ -22,10 +22,15 @@ function MapStateSync() {
   const { mapCenter, mapZoom, setMapCenter, setMapZoom } = useSailingStore();
   const map = useMap();
 
+  // Fly to zone when mapCenter changes
   useEffect(() => {
-    map.setView([mapCenter.lat, mapCenter.lng], mapZoom, { animate: false });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    map.flyTo([mapCenter.lat, mapCenter.lng], mapZoom, {
+      duration: 1.2,
+      animate: true,
+    });
+  }, [mapCenter.lat, mapCenter.lng, mapZoom]);
 
+  // Sync map position back to store on user interaction
   useEffect(() => {
     const onMoveEnd = () => {
       const center = map.getCenter();
