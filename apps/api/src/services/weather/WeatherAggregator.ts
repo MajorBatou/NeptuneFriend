@@ -10,6 +10,8 @@ import { GFSProvider } from './providers/GFSProvider.js';
 import { ICONProvider } from './providers/ICONProvider.js';
 import { ECMWFProvider } from './providers/ECMWFProvider.js';
 import { MetOfficeProvider } from './providers/MetOfficeProvider.js';
+import { NOAAProvider } from './providers/NOAAProvider.js';
+import { NTSLFProvider } from './providers/NTSLFProvider.js';
 import { WorldTidesProvider } from './providers/WorldTidesProvider.js';
 
 export interface AggregatedConditions {
@@ -61,7 +63,9 @@ export interface AggregatedConditions {
 
 export class WeatherAggregator {
   private providers: WeatherProvider[];
-  private tidesProvider: WorldTidesProvider;
+  private noaaProvider: NOAAProvider;
+  private ntslf: NTSLFProvider;
+  private worldTides: WorldTidesProvider;
 
   constructor() {
     this.providers = [
@@ -72,13 +76,14 @@ export class WeatherAggregator {
       new OpenWeatherProvider(),
       new MetOfficeProvider(),
     ];
-    this.tidesProvider = new WorldTidesProvider();
+    this.noaaProvider = new NOAAProvider();
+    this.ntslf = new NTSLFProvider();
+    this.worldTides = new WorldTidesProvider();
   }
 
   async getConditions(lat: number, lng: number): Promise<AggregatedConditions> {
     const supportedProviders = this.providers.filter((p) => p.supportsRegion(lat, lng));
 
-    // Fetch from all supported providers in parallel, ignore failures
     const results = await Promise.allSettled(
       supportedProviders.map((p) => p.getConditions(lat, lng))
     );
@@ -90,16 +95,12 @@ export class WeatherAggregator {
       }))
       .filter((r): r is { data: ProviderConditions; provider: WeatherProvider } => r.data !== null);
 
-    if (successful.length === 0) {
-      throw new Error('All weather providers failed');
-    }
+    if (successful.length === 0) throw new Error('All weather providers failed');
 
-    // Get tides in parallel
-    const tides = await this.tidesProvider.getTides(lat, lng);
+    // Get tides — try NOAA first (free), then NTSLF (free UK), then WorldTides (paid)
+    const tides = await this.getTides(lat, lng);
 
-    // Weighted blend based on provider priority
     const totalWeight = successful.reduce((sum, r) => sum + r.provider.priority, 0);
-
     const blended = this.blendConditions(successful, totalWeight);
     const waves = this.processWaves(blended.waves);
     const safetyRating = this.calculateSafetyRating(
@@ -122,6 +123,29 @@ export class WeatherAggregator {
     };
   }
 
+  private async getTides(lat: number, lng: number) {
+    // Try NOAA first (US zones, completely free)
+    if (this.noaaProvider.supportsRegion(lat, lng)) {
+      try {
+        return await this.noaaProvider.getTides(lat, lng);
+      } catch {
+        // Fall through
+      }
+    }
+
+    // Try NTSLF (UK/Ireland zones, completely free)
+    if (this.ntslf.supportsRegion(lat, lng)) {
+      try {
+        return await this.ntslf.getTides(lat, lng);
+      } catch {
+        // Fall through
+      }
+    }
+
+    // Fall back to WorldTides (paid, global)
+    return await this.worldTides.getTides(lat, lng);
+  }
+
   async getForecast(lat: number, lng: number, hours: number): Promise<ProviderForecastPoint[]> {
     const supportedProviders = this.providers.filter((p) => p.supportsRegion(lat, lng));
 
@@ -140,7 +164,6 @@ export class WeatherAggregator {
 
     if (successful.length === 0) throw new Error('All forecast providers failed');
 
-    // Use the highest priority provider's timestamps as base
     const basePoints = successful.sort((a, b) => b.provider.priority - a.provider.priority)[0].data;
     const totalWeight = successful.reduce((sum, r) => sum + r.provider.priority, 0);
 
@@ -209,7 +232,6 @@ export class WeatherAggregator {
       precip += data.weather.precipitation * w;
       pressure += data.weather.pressure * w;
       humidity += data.weather.humidity * w;
-
       if (!description) description = data.weather.description;
     }
 
@@ -262,7 +284,6 @@ export class WeatherAggregator {
       results.map((r) => ({ data: r.data, provider: r.provider })),
       totalWeight
     );
-
     return {
       ...blended,
       model: results.map((r) => r.provider.model).join('+'),
@@ -274,8 +295,6 @@ export class WeatherAggregator {
   private processWaves(waves: ProviderWaveData) {
     const primary = waves.primarySwell;
     const secondary = waves.secondarySwell;
-
-    // Calculate angle between swells
     let swellAngle: number | undefined;
     let confusedSea = false;
 
@@ -285,16 +304,13 @@ export class WeatherAggregator {
       confusedSea = swellAngle < 45;
     }
 
-    // Calculate sea state
-    const seaState = this.getSeaState(waves.height, confusedSea);
-
     return {
       height: waves.height,
       period: waves.period,
       direction: waves.direction,
       primarySwell: primary,
       secondarySwell: secondary,
-      seaState,
+      seaState: this.getSeaState(waves.height, confusedSea),
       confusedSea,
       swellAngle,
     };
