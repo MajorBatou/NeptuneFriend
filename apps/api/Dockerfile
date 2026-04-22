@@ -2,19 +2,22 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Copy root package files
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 
+# Install all dependencies
 RUN npm ci --workspace=apps/api
 
+# Copy source
 COPY apps/api ./apps/api
 
+# Build TypeScript
 RUN npm -w apps/api run build
 
 # Stage 2: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 
 COPY package.json package-lock.json ./
