@@ -1,4 +1,4 @@
-import { query, queryOne, withTransaction } from '@/db/pool';
+import { query, queryOne, withTransaction } from '../db/pool.js';
 import bcrypt from 'bcryptjs';
 
 export interface User {

@@ -1,4 +1,4 @@
-import { query, queryOne } from '@/db/pool';
+import { query, queryOne } from '../db/pool.js';
 
 export interface SailingZone {
   id: string;
