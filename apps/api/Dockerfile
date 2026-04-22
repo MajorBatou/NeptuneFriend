@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 
-RUN npm ci --workspace=apps/api
+RUN npm ci --workspace=apps/api && npm install -g tsc-alias
 
 COPY apps/api ./apps/api
 
