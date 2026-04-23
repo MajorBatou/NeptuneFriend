@@ -1,6 +1,5 @@
 node_modules
 apps/*/node_modules
-apps/web
 dist
 apps/api/dist
 .git
