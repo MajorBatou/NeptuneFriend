@@ -9,7 +9,6 @@ RUN npm ci --workspace=apps/api --ignore-scripts
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules 2>/dev/null || true
 COPY apps/api ./apps/api
 COPY package.json ./
 RUN npm -w apps/api run build
