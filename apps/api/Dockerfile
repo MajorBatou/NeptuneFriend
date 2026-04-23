@@ -23,8 +23,8 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 RUN npm ci --workspace=apps/api --omit=dev --ignore-scripts
-
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY apps/api/src/migrations ./apps/api/dist/migrations
 
 # Use built-in node user (uid 1000)
 RUN chown -R node:node /app
