@@ -1,6 +1,5 @@
 resource "aws_iam_role" "eks_cluster" {
   name = "${var.project}-${var.environment}-eks-cluster-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -22,26 +21,33 @@ resource "aws_eks_cluster" "main" {
   name     = "${var.project}-${var.environment}"
   role_arn = aws_iam_role.eks_cluster.arn
   version  = var.cluster_version
-
   vpc_config {
     subnet_ids              = concat(var.public_subnet_ids, var.private_subnet_ids)
     security_group_ids      = [var.eks_nodes_security_group_id]
     endpoint_private_access = true
     endpoint_public_access  = true
   }
-
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
-
   depends_on = [aws_iam_role_policy_attachment.eks_cluster_policy]
-
   tags = {
     Name = "${var.project}-${var.environment}-eks"
   }
 }
 
+# OIDC provider for service account IAM roles
+data "tls_certificate" "eks" {
+  url = aws_eks_cluster.main.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+  url             = aws_eks_cluster.main.identity[0].oidc[0].issuer
+  depends_on      = [aws_eks_cluster.main]
+}
+
 resource "aws_iam_role" "eks_nodes" {
   name = "${var.project}-${var.environment}-eks-node-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -75,36 +81,60 @@ resource "aws_eks_node_group" "main" {
   node_role_arn   = aws_iam_role.eks_nodes.arn
   subnet_ids      = var.private_subnet_ids
   instance_types  = [var.node_instance_type]
-
   scaling_config {
     desired_size = var.node_desired_size
     min_size     = var.node_min_size
     max_size     = var.node_max_size
   }
-
   update_config {
     max_unavailable = 1
   }
-
   labels = {
     environment = var.environment
     project     = var.project
   }
-
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.eks_container_registry,
   ]
-
   tags = {
     Name = "${var.project}-${var.environment}-node-group"
   }
 }
 
-resource "aws_eks_addon" "ebs_csi_driver" {
-  cluster_name = aws_eks_cluster.main.name
-  addon_name   = "aws-ebs-csi-driver"
+resource "aws_iam_role" "ebs_csi_driver" {
+  name = "${var.project}-${var.environment}-ebs-csi-driver"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+        }
+      }
+    }]
+  })
+}
 
-  depends_on = [aws_eks_node_group.main]
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
+  role       = aws_iam_role.ebs_csi_driver.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+resource "aws_eks_addon" "ebs_csi_driver" {
+  cluster_name             = aws_eks_cluster.main.name
+  addon_name               = "aws-ebs-csi-driver"
+  service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
+  resolve_conflicts_on_create = "OVERWRITE"
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_iam_role_policy_attachment.ebs_csi_driver,
+    aws_iam_openid_connect_provider.eks,
+  ]
 }
