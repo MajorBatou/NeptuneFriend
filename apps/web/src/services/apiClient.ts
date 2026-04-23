@@ -1,7 +1,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { ApiError } from '@/types';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// In production (cluster) use /api prefix which nginx proxies to the API service
+// In development use localhost:4000 directly
+const BASE_URL =
+  import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:4000');
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
