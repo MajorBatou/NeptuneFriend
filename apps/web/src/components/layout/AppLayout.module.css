@@ -2,16 +2,21 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
 }
 
 .nav {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  padding: 0 var(--space-6);
+  gap: 1rem;
+  padding: 0 var(--space-4);
   height: 60px;
   background-color: var(--color-ocean-deep);
   border-bottom: 2px solid var(--color-ocean-mid);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .navBrand {
@@ -37,6 +42,13 @@
   display: flex;
   gap: var(--space-1);
   flex: 1;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.navLinks::-webkit-scrollbar {
+  display: none;
 }
 
 .link,
@@ -49,6 +61,8 @@
   transition:
     background-color 0.15s,
     color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .link {
@@ -68,7 +82,7 @@
 .navUser {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
@@ -86,6 +100,7 @@
   font-size: 13px;
   cursor: pointer;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 
 .logoutBtn:hover {
@@ -96,4 +111,27 @@
 .main {
   flex: 1;
   overflow: auto;
+  height: calc(100dvh - 60px);
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .nav {
+    padding: 0 var(--space-3);
+    gap: 0.5rem;
+  }
+
+  .brandName {
+    display: none;
+  }
+
+  .userName {
+    display: none;
+  }
+
+  .link,
+  .linkActive {
+    font-size: 12px;
+    padding: var(--space-1) var(--space-2);
+  }
 }

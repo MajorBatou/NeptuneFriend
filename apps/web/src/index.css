@@ -58,3 +58,31 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Mobile viewport fix */
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+/* Improve tap targets on mobile */
+@media (max-width: 768px) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text zoom on input focus on iOS */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
