@@ -110,8 +110,11 @@ router.get('/forecast/:zoneId', async (req: Request, res: Response) => {
 
     const cached = await weatherCache.getForecast(zoneId, hours);
     if (cached) {
+      const cachedData = JSON.parse(cached);
+      // Handle both old cache format (array) and new format (object with points)
+      const points = Array.isArray(cachedData) ? cachedData : cachedData.points;
       return res.json({
-        data: JSON.parse(cached),
+        data: { zoneId, points, generatedAt: cachedData.generatedAt ?? new Date().toISOString() },
         cached: true,
         timestamp: new Date().toISOString(),
       });
