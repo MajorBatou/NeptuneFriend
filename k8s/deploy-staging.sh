@@ -89,12 +89,19 @@ helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheu
   --set prometheus.prometheusSpec.resources.requests.cpu=100m \
   --set alertmanager.alertmanagerSpec.resources.requests.memory=64Mi \
   --set grafana.resources.requests.memory=128Mi \
-  --wait \
-  --timeout 10m
+  --timeout 15m \
+  --atomic
+
+echo "Waiting for Prometheus pods..."
+kubectl wait --for=condition=ready pod \
+  -l app.kubernetes.io/name=grafana \
+  -n monitoring \
+  --timeout=300s
 
 echo "Applying Prometheus alert rules..."
 kubectl apply -f monitoring/prometheus/alert-rules.yaml 2>/dev/null || true
 kubectl apply -f slo/slo-rules.yaml 2>/dev/null || true
+kubectl apply -f k8s/base/monitoring/servicemonitor.yaml 2>/dev/null || true
 
 echo ""
 echo "--- Step 5: Installing KEDA ---"
@@ -105,8 +112,14 @@ helm upgrade --install keda kedacore/keda \
   --namespace keda \
   --create-namespace \
   --values k8s/cluster-essentials/keda/values.yaml \
-  --wait \
-  --timeout 5m
+  --timeout 5m \
+  --atomic
+
+echo "Waiting for KEDA pods..."
+kubectl wait --for=condition=ready pod \
+  -l app=keda-operator \
+  -n keda \
+  --timeout=180s
 
 echo "Applying KEDA ScaledObject..."
 kubectl apply -f k8s/cluster-essentials/keda/api-scaledobject.yaml
