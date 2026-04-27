@@ -90,7 +90,7 @@ helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheu
   --set alertmanager.alertmanagerSpec.resources.requests.memory=64Mi \
   --set grafana.resources.requests.memory=128Mi \
   --timeout 15m \
-  --atomic
+  --wait=false \
 
 echo "Waiting for Prometheus pods..."
 kubectl wait --for=condition=ready pod \
@@ -113,7 +113,7 @@ helm upgrade --install keda kedacore/keda \
   --create-namespace \
   --values k8s/cluster-essentials/keda/values.yaml \
   --timeout 5m \
-  --atomic
+  --wait=false \
 
 echo "Waiting for KEDA pods..."
 kubectl wait --for=condition=ready pod \
