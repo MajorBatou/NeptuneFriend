@@ -20,7 +20,7 @@ spec:
   triggers:
     - type: prometheus
       metadata:
-        serverAddress: http://prometheus-kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        serverAddress: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
         metricName: neptunefriend_http_requests
         threshold: "50"
         query: |
