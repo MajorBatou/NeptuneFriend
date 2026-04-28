@@ -3,7 +3,7 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
-RUN npm ci --workspace=apps/api --ignore-scripts
+RUN npm ci --workspace=apps/api --ignore-scripts --include=dev
 
 # Stage 2: Build
 FROM node:20-alpine AS builder
