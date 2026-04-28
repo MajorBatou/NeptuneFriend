@@ -1,15 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import passport from 'passport';
 import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import weatherRoutes from './routes/weather.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
 import { metricsMiddleware, getMetrics } from './middleware/metrics.js';
 import { checkConnection } from './db/pool.js';
+import { configurePassport } from './config/passport.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Configure passport
+configurePassport();
 
 app.use(helmet());
 app.use(
@@ -19,10 +24,10 @@ app.use(
   })
 );
 app.use(express.json({ limit: '10kb' }));
+app.use(passport.initialize());
 app.use(metricsMiddleware);
 app.use(apiRateLimit);
 
-// Health check
 app.get('/health', async (_req, res) => {
   const dbConnected = await checkConnection();
   res.json({
@@ -33,7 +38,6 @@ app.get('/health', async (_req, res) => {
   });
 });
 
-// Prometheus metrics endpoint
 app.get('/metrics', (_req, res) => {
   res.set('Content-Type', 'text/plain; version=0.0.4');
   res.send(getMetrics());
@@ -61,9 +65,10 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
   });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.info(`NeptuneFriend API running on port ${PORT}`);
   console.info(`Metrics available at http://localhost:${PORT}/metrics`);
+  console.info(`Google OAuth: http://localhost:${PORT}/auth/google`);
 });
 
 export default app;
