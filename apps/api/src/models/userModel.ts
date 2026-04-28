@@ -117,4 +117,23 @@ export const UserModel = {
       },
     };
   },
+  async createFromGoogle(data: {
+    name: string;
+    email: string;
+    googleId: string;
+    avatarUrl?: string;
+  }): Promise<User> {
+    const { rows } = await query<User>(
+      `INSERT INTO users (name, email, password_hash, provider, avatar_url)
+       VALUES ($1, $2, NULL, 'google', $3)
+       ON CONFLICT (email) DO UPDATE
+       SET name = EXCLUDED.name,
+           avatar_url = EXCLUDED.avatar_url,
+           updated_at = NOW()
+       RETURNING id, name, email, provider,
+                 created_at as "createdAt", updated_at as "updatedAt"`,
+      [data.name, data.email, data.avatarUrl ?? null]
+    );
+    return rows[0];
+  },
 };
