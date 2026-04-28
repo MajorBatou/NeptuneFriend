@@ -123,7 +123,7 @@ export const UserModel = {
     googleId: string;
     avatarUrl?: string;
   }): Promise<User> {
-    const { rows } = await query<User>(
+    const rows = await query<User>(
       `INSERT INTO users (name, email, password_hash, provider, avatar_url)
        VALUES ($1, $2, NULL, 'google', $3)
        ON CONFLICT (email) DO UPDATE
