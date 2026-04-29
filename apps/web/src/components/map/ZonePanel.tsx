@@ -36,7 +36,9 @@ export default function ZonePanel({ onZoneSelect }: ZonePanelProps) {
         ? true
         : filter === 'favorites'
           ? favoriteZoneIds.includes(zone.id)
-          : zone.conditions?.safetyRating === filter;
+          : zone.conditions === null
+            ? false
+            : zone.conditions?.safetyRating === filter;
     return matchesSearch && matchesFilter;
   });
 
