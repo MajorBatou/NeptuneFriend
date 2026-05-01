@@ -4,6 +4,7 @@ import { WindRose, TidalFlow, ForecastTimeline, WeatherStrip } from '@/component
 import { SwellRose, SeaStateCard, ModelBadges } from '@/components/swell';
 import { useZones, useConditions } from '@/hooks';
 import { useSailingStore } from '@/store';
+import { SafetyAlerts } from '@/components/safety';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
@@ -85,6 +86,14 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Safety Alerts */}
+              <div className={styles.fullCard}>
+                <SafetyAlerts
+                  wind={conditions.wind}
+                  waves={conditions.waves}
+                  weather={conditions.weather}
+                />
+              </div>
               {/* Wind Rose */}
               <div className={styles.detailCard}>
                 <h3 className={styles.cardTitle}>Wind</h3>
