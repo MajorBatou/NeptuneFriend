@@ -47,6 +47,12 @@ export default function AppLayout() {
           >
             Alerts
           </NavLink>
+          <NavLink
+            to="/historical"
+            className={({ isActive }) => (isActive ? styles.linkActive : styles.link)}
+          >
+            Historical
+          </NavLink>
         </div>
 
         <div className={styles.navUser}>

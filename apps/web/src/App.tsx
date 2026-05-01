@@ -12,6 +12,7 @@ const Alerts = lazy(() => import('@/pages/Alerts'));
 const Login = lazy(() => import('@/pages/Login'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const AuthCallback = lazy(() => import('@/pages/AuthCallback'));
+const Historical = lazy(() => import('@/pages/Historical'));
 
 export default function App() {
   useWebVitals();
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/map" element={<Map />} />
             <Route path="/planner" element={<RoutePlanner />} />
             <Route path="/alerts" element={<Alerts />} />
+            <Route path="/historical" element={<Historical />} />
           </Route>
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="*" element={<NotFound />} />
