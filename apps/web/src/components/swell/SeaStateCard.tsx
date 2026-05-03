@@ -17,6 +17,7 @@ const SEA_STATE_COLORS: Record<SeaState, { bg: string; text: string; border: str
   'very-rough': { bg: '#fff7ed', text: '#c2410c', border: '#fb923c' },
   high: { bg: '#fef2f2', text: '#dc2626', border: '#f87171' },
   'very-high': { bg: '#fef2f2', text: '#dc2626', border: '#f87171' },
+  confused: { bg: '#fefce8', text: '#d97706', border: '#fbbf24' },
   phenomenal: { bg: '#f40a0a', text: '#991b1b', border: '#ef4444' },
 };
 
