@@ -5,6 +5,8 @@ import { SwellRose, SeaStateCard, ModelBadges } from '@/components/swell';
 import { useZones, useConditions } from '@/hooks';
 import { useSailingStore } from '@/store';
 import { SafetyAlerts } from '@/components/safety';
+import { useMarine } from '@/hooks/useMarine';
+import { MarineConditionsCard } from '@/components/marine';
 import styles from './Dashboard.module.css';
 
 export default function Dashboard() {
@@ -12,6 +14,7 @@ export default function Dashboard() {
   const { selectedZoneId, selectZone } = useSailingStore();
   const { data: conditions, isLoading: conditionsLoading } = useConditions(selectedZoneId);
   const selectedZone = zones?.find((z) => z.id === selectedZoneId);
+  const { data: marineData } = useMarine(selectedZoneId);
 
   return (
     <div className={styles.page}>
@@ -123,6 +126,13 @@ export default function Dashboard() {
                 <h3 className={styles.cardTitle}>Weather</h3>
                 <WeatherStrip weather={conditions.weather} />
               </div>
+
+              {/* Marine Conditions */}
+              {marineData && (
+                <div className={styles.fullCard}>
+                  <MarineConditionsCard marine={marineData} />
+                </div>
+              )}
 
               {/* Forecast */}
               <div className={styles.forecastCard}>

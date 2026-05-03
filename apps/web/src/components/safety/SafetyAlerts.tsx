@@ -35,23 +35,23 @@ function getAlerts(wind: Wind, waves: Waves, weather: Weather): Alert[] {
   const alerts: Alert[] = [];
 
   // 1 — Confused sea warning
-  if (waves.confusedSea && wind.beaufort >= 7) {
-    const angle = waves.swellAngle ?? 45;
+  if (waves.confusedSea && wind.beaufort >= 7 && waves.height >= 2.5) {
     alerts.push({
       id: 'confused-sea',
       level: 'danger',
       icon: '🌀',
       title: 'Confused Sea Warning',
-      message: `Primary and secondary swells converging at ${angle}° with Force ${wind.beaufort} winds. Unpredictable breaking waves — extreme danger. Do not sail.`,
+      message:
+        ' Primary and secondary swells converging at ${angle}° with Force ${wind.beaufort} winds and ${waves.height}m seas. Unpredictable breaking waves — extreme danger.',
     });
-  } else if (waves.confusedSea) {
-    const angle = waves.swellAngle ?? 45;
+  } else if (waves.confusedSea && wind.beaufort >= 5 && waves.height >= 1.5) {
     alerts.push({
       id: 'confused-sea-moderate',
       level: 'warning',
       icon: '🌀',
       title: 'Confused Sea Advisory',
-      message: `Crossing swells at ${angle}° creating irregular wave patterns. Use caution — conditions may deteriorate rapidly.`,
+      message:
+        'Crossing swells at ${angle}° creating irregular wave patterns in ${waves.height}m seas. Use caution.',
     });
   }
 
