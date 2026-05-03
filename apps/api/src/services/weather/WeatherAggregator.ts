@@ -334,8 +334,12 @@ export class WeatherAggregator {
     waveHeight: number,
     confusedSea: boolean
   ): 'safe' | 'caution' | 'danger' {
-    if (beaufort >= 7 || waveHeight >= 3 || confusedSea) return 'danger';
-    if (beaufort >= 5 || waveHeight >= 1.5) return 'caution';
+    // Confused sea only dangerous when combined with significant waves and wind
+    const confusedSeaDanger = confusedSea && beaufort >= 7 && waveHeight >= 2.5;
+    const confusedSeaCaution = confusedSea && beaufort >= 5 && waveHeight >= 1.5;
+
+    if (beaufort >= 7 || waveHeight >= 3 || confusedSeaDanger) return 'danger';
+    if (beaufort >= 5 || waveHeight >= 1.5 || confusedSeaCaution) return 'caution';
     return 'safe';
   }
 }

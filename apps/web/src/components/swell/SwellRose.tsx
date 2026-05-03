@@ -199,7 +199,18 @@ export default function SwellRose({ waves, size = 220 }: SwellRoseProps) {
           </div>
         )}
         {confusedSea && (
-          <div className={styles.confusedWarning}>
+          <div
+            className={styles.confusedWarning}
+            style={
+              waves.height < 2.5
+                ? {
+                    color: '#d97706',
+                    background: '#fefce8',
+                    borderColor: '#fbbf24',
+                  }
+                : undefined
+            }
+          >
             Confused seas — swells {swellAngle?.toFixed(0)}° apart
           </div>
         )}

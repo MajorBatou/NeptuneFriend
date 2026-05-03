@@ -17,8 +17,8 @@ const SEA_STATE_COLORS: Record<SeaState, { bg: string; text: string; border: str
   'very-rough': { bg: '#fff7ed', text: '#c2410c', border: '#fb923c' },
   high: { bg: '#fef2f2', text: '#dc2626', border: '#f87171' },
   'very-high': { bg: '#fef2f2', text: '#dc2626', border: '#f87171' },
-  phenomenal: { bg: '#fef2f2', text: '#991b1b', border: '#ef4444' },
-  confused: { bg: '#fef2f2', text: '#dc2626', border: '#ef4444' },
+  confused: { bg: '#fefce8', text: '#d97706', border: '#fbbf24' },
+  phenomenal: { bg: '#f40a0a', text: '#991b1b', border: '#ef4444' },
 };
 
 function calcSignificantWaveHeight(waves: WaveData): number {
@@ -29,9 +29,17 @@ function calcSignificantWaveHeight(waves: WaveData): number {
     10
   );
 }
+const getConfusedConfig = (waveHeight: number) => {
+  if (waveHeight >= 2.5) {
+    return { bg: '#fef2f2', text: '#dc2626', border: '#ef4444' };
+  }
+  return { bg: '#fefce8', text: '#d97706', border: '#fbbf24' };
+};
 
 export default function SeaStateCard({ waves, modelCount }: SeaStateCardProps) {
-  const config = SEA_STATE_COLORS[waves.seaState];
+  const config = waves.confusedSea
+    ? getConfusedConfig(waves.height)
+    : SEA_STATE_COLORS[waves.seaState];
   const significantHeight = calcSignificantWaveHeight(waves);
   const description = SEA_STATE_DESCRIPTIONS[waves.seaState];
 
@@ -50,7 +58,11 @@ export default function SeaStateCard({ waves, modelCount }: SeaStateCardProps) {
           </div>
           <div className={styles.description}>{description}</div>
         </div>
-        {waves.confusedSea && <div className={styles.confusedBadge}>Confused</div>}
+        {waves.confusedSea && (
+          <div className={waves.height >= 2.5 ? styles.confusedBadge : styles.confusedBadgeMild}>
+            Confused
+          </div>
+        )}
       </div>
 
       <div className={styles.stats}>
@@ -80,7 +92,12 @@ export default function SeaStateCard({ waves, modelCount }: SeaStateCardProps) {
             <span
               className={styles.statValue}
               style={{
-                color: waves.confusedSea ? '#dc2626' : 'inherit',
+                color:
+                  waves.confusedSea && waves.height >= 2.5
+                    ? '#dc2626'
+                    : waves.confusedSea
+                      ? '#d97706'
+                      : 'inherit',
               }}
             >
               {waves.swellAngle.toFixed(0)}°{waves.confusedSea ? ' ⚠' : ''}

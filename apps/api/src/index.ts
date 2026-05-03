@@ -6,6 +6,7 @@ import 'dotenv/config';
 import authRoutes from './routes/auth.js';
 import weatherRoutes from './routes/weather.js';
 import historicalRoutes from './routes/historical.js';
+import marineRoutes from './routes/marine.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
 import { metricsMiddleware, getMetrics } from './middleware/metrics.js';
 import { checkConnection } from './db/pool.js';
@@ -47,6 +48,7 @@ app.get('/metrics', (_req, res) => {
 app.use('/auth', authRoutes);
 app.use('/weather', weatherRoutes);
 app.use('/historical', historicalRoutes);
+app.use('/marine', marineRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({
