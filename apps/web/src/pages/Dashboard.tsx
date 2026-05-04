@@ -95,6 +95,7 @@ export default function Dashboard() {
                   wind={conditions.wind}
                   waves={conditions.waves}
                   weather={conditions.weather}
+                  marine={marineData}
                 />
               </div>
               {/* Wind Rose */}
