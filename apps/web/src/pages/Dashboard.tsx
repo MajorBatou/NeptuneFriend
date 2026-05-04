@@ -87,16 +87,14 @@ export default function Dashboard() {
                     <ModelBadges models={conditions.models} />
                   </div>
                 )}
-              </div>
-
-              {/* Safety Alerts */}
-              <div className={styles.fullCard}>
                 <SafetyAlerts
                   wind={conditions.wind}
                   waves={conditions.waves}
                   weather={conditions.weather}
+                  marine={marineData}
                 />
               </div>
+
               {/* Wind Rose */}
               <div className={styles.detailCard}>
                 <h3 className={styles.cardTitle}>Wind</h3>
