@@ -9,18 +9,27 @@ interface Waves {
   height: number;
   confusedSea?: boolean;
   swellAngle?: number;
-  primarySwell?: { direction: number };
-  secondarySwell?: { direction: number };
 }
 
 interface Weather {
   pressure: number;
 }
 
+interface OceanCurrent {
+  velocity: number | null;
+  direction: number | null;
+  description: string | null;
+}
+
+interface MarineData {
+  oceanCurrent: OceanCurrent;
+}
+
 interface SafetyAlertsProps {
   wind: Wind;
   waves: Waves;
   weather: Weather;
+  marine?: MarineData | null;
 }
 
 interface Alert {
@@ -31,8 +40,14 @@ interface Alert {
   message: string;
 }
 
-function getAlerts(wind: Wind, waves: Waves, weather: Weather): Alert[] {
+function getAlerts(
+  wind: Wind,
+  waves: Waves,
+  weather: Weather,
+  marine?: MarineData | null
+): Alert[] {
   const alerts: Alert[] = [];
+  const angle = waves.swellAngle ?? 45;
 
   // 1 — Confused sea warning
   if (waves.confusedSea && wind.beaufort >= 7 && waves.height >= 2.5) {
@@ -41,8 +56,7 @@ function getAlerts(wind: Wind, waves: Waves, weather: Weather): Alert[] {
       level: 'danger',
       icon: '🌀',
       title: 'Confused Sea Warning',
-      message:
-        ' Primary and secondary swells converging at ${angle}° with Force ${wind.beaufort} winds and ${waves.height}m seas. Unpredictable breaking waves — extreme danger.',
+      message: `Primary and secondary swells converging at ${angle}° with Force ${wind.beaufort} winds and ${waves.height}m seas. Unpredictable breaking waves — extreme danger. Do not sail.`,
     });
   } else if (waves.confusedSea && wind.beaufort >= 5 && waves.height >= 1.5) {
     alerts.push({
@@ -50,8 +64,7 @@ function getAlerts(wind: Wind, waves: Waves, weather: Weather): Alert[] {
       level: 'warning',
       icon: '🌀',
       title: 'Confused Sea Advisory',
-      message:
-        'Crossing swells at ${angle}° creating irregular wave patterns in ${waves.height}m seas. Use caution.',
+      message: `Crossing swells at ${angle}° creating irregular wave patterns in ${waves.height}m seas. Use caution — conditions may deteriorate rapidly.`,
     });
   }
 
@@ -128,11 +141,43 @@ function getAlerts(wind: Wind, waves: Waves, weather: Weather): Alert[] {
     });
   }
 
+  // 5 — Ocean current warnings
+  if (marine?.oceanCurrent?.velocity !== null && marine?.oceanCurrent?.velocity !== undefined) {
+    const knots = marine.oceanCurrent.velocity * 1.944;
+    const dir = marine.oceanCurrent.description ?? '';
+
+    if (knots >= 8) {
+      alerts.push({
+        id: 'extreme-current',
+        level: 'danger',
+        icon: '🔄',
+        title: 'Extreme Ocean Current',
+        message: `Current running at ${knots.toFixed(1)} knots. ${dir}. Extreme danger — vessel control severely compromised. Do not sail.`,
+      });
+    } else if (knots >= 5) {
+      alerts.push({
+        id: 'very-strong-current',
+        level: 'danger',
+        icon: '🔄',
+        title: 'Very Strong Current Warning',
+        message: `Current running at ${knots.toFixed(1)} knots. ${dir}. Very strong — anchoring difficult, manoeuvring restricted.`,
+      });
+    } else if (knots >= 3) {
+      alerts.push({
+        id: 'strong-current',
+        level: 'warning',
+        icon: '🔄',
+        title: 'Strong Current Advisory',
+        message: `Current running at ${knots.toFixed(1)} knots. ${dir}. Allow extra time and fuel for passages against the current.`,
+      });
+    }
+  }
+
   return alerts;
 }
 
-export default function SafetyAlerts({ wind, waves, weather }: SafetyAlertsProps) {
-  const alerts = getAlerts(wind, waves, weather);
+export default function SafetyAlerts({ wind, waves, weather, marine }: SafetyAlertsProps) {
+  const alerts = getAlerts(wind, waves, weather, marine);
 
   if (alerts.length === 0) return null;
 
