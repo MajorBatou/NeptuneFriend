@@ -10,7 +10,7 @@
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-326CE5?logo=kubernetes&logoColor=white)
 
-A full-stack DevOps CV project — from `npm create vite` to production Kubernetes with canary deployments, multi-model weather ensemble, Prometheus monitoring, KEDA autoscaling and Google OAuth.
+A full-stack DevOps CV project — from `npm create vite` to production Kubernetes with canary deployments, multi-model weather ensemble, Prometheus monitoring, KEDA autoscaling, Google OAuth and a comprehensive marine safety alert system.
 
 </div>
 
@@ -18,15 +18,16 @@ A full-stack DevOps CV project — from `npm create vite` to production Kubernet
 
 ## What it does
 
-NeptuneFriend aggregates data from **6 weather models** to give sailors accurate, blended forecasts with features professional apps charge for:
+NeptuneFriend aggregates data from **6 weather models + marine API** to give sailors accurate, blended forecasts with features professional apps charge for:
 
 - **Dual swell visualization** — primary + secondary swell rose with confused sea detection
 - **Multi-model ensemble** — ECMWF, ICON, GFS, Open-Meteo, OpenWeather, Met Office blended by regional priority
 - **37 global sailing zones** — UK/Ireland, US East/West, Caribbean, Australia, New Zealand
-- **Real-time tidal data** — NOAA (US), NTSLF (UK/Ireland), WorldTides (global fallback)
+- **Real-time tidal data** — NOAA (US), NTSLF (UK/Ireland), WorldTides (global fallback) — all free
+- **Marine conditions** — wind waves, ocean currents, sea surface temperature via Open-Meteo Marine API
 - **Route planner** — click-to-add waypoints with distance/time estimates and GPX export
 - **Configurable alerts** — wind/wave/storm/fog alerts with in-app notification bell
-- **Safety alert system** — real-time warnings for confused seas, low pressure, gale and storm force winds
+- **Safety alert system** — real-time warnings for confused seas, low pressure, gale/storm force winds and strong currents
 - **Historical storm conditions** — recreated conditions from Fastnet 1979, Sydney-Hobart 1998, Middle Sea 2007
 - **Google OAuth** — one-click sign-in alongside email/password authentication
 
@@ -47,7 +48,7 @@ NeptuneFriend aggregates data from **6 weather models** to give sailors accurate
 |------|-------------|
 | **Cloud** | AWS EKS, VPC (Terraform) |
 | **Containers** | Docker, GHCR, Trivy security scanning |
-| **Kubernetes** | EKS, NGINX proxy, KEDA, HPA |
+| **Kubernetes** | EKS, nginx proxy, KEDA, HPA |
 | **CI/CD** | GitHub Actions (CI, CD staging, canary, production promotion) |
 | **Config** | Ansible (server hardening, Docker, kubectl setup) |
 | **Monitoring** | Prometheus, Grafana, kube-prometheus-stack |
@@ -61,33 +62,33 @@ NeptuneFriend aggregates data from **6 weather models** to give sailors accurate
 ┌─────────────────────────────────────────────────────────┐
 │                     AWS EKS Cluster                      │
 │                                                           │
-│  Web (React + nginx)      API (Express)                  │
-│  2 pods                   2-10 pods (HPA + KEDA)         │
-│  nginx proxies /api/* ──→      ↓              ↓          │
-│  nginx proxies /auth/* ─→ PostgreSQL       Redis         │
-│                                ↓                         │
-│                      6 Weather Providers                 │
-│            ECMWF · ICON · GFS · Open-Meteo              │
-│            OpenWeather · Met Office                      │
-│            NOAA (US tides) · NTSLF (UK tides)           │
+│  Web (React + nginx)        API (Express)                │
+│  2 pods                     2-10 pods (HPA + KEDA)       │
+│  nginx proxies /api/* ───→      ↓              ↓         │
+│  nginx proxies /auth/* ──→  PostgreSQL       Redis       │
+│                                  ↓                       │
+│                        6 Weather Providers               │
+│              ECMWF · ICON · GFS · Open-Meteo            │
+│              OpenWeather · Met Office                    │
+│              NOAA (US tides) · NTSLF (UK tides)         │
+│              Open-Meteo Marine (currents + waves)        │
 │                                                           │
-│  Prometheus (monitoring ns) ←── /metrics endpoint        │
-│  KEDA ScaledObject: scales on HTTP req/s > 50            │
+│  Prometheus ←── /metrics    KEDA: scales on req/s > 50  │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Weather Model Architecture
+## Weather & Marine Data Architecture
 
 ```
 Request → WeatherAggregator
-    ├── ECMWFProvider     (priority 9, global)
-    ├── MetOfficeProvider (priority 9, UK/Ireland only)
-    ├── ICONProvider      (priority 8, Europe only)
-    ├── OpenMeteoProvider (priority 7, global, free)
-    ├── GFSProvider       (priority 6, global, free)
-    └── OpenWeatherProvider (priority 6, global)
+    ├── ECMWFProvider          (priority 9, global)
+    ├── MetOfficeProvider      (priority 9, UK/Ireland)
+    ├── ICONProvider           (priority 8, Europe)
+    ├── OpenMeteoProvider      (priority 7, global, free)
+    ├── GFSProvider            (priority 6, global, free)
+    └── OpenWeatherProvider    (priority 6, global)
          ↓
     Weighted blend by priority
          ↓
@@ -96,11 +97,13 @@ Request → WeatherAggregator
     • Significant wave height √(H₁² + H₂²)
     • Sea state classification (calm → phenomenal)
     • Safety rating (safe/caution/danger)
-    • Safety alerts (gale, storm, low pressure, confused seas)
+         ↓
+    + Open-Meteo Marine API (parallel, free, no key)
+    • Wind wave height/direction/period
+    • Ocean current velocity + direction
+    • Sea surface temperature
          ↓
     Redis cache (conditions: 1hr, forecast: 12hr, zones: 24hr)
-         ↓
-    Response with model contribution badges
 ```
 
 ---
@@ -117,19 +120,37 @@ Request → WeatherAggregator
 
 ## Safety Alert System
 
-The app surfaces real-time safety warnings based on conditions:
+Real-time warnings based on combined weather, wave and marine conditions:
 
-| Alert | Trigger |
-|-------|---------|
-| 🌀 Confused Sea Warning | Swells within 45° + Beaufort ≥ 7 |
-| 📉 Low Pressure Advisory | Pressure < 1000 hPa |
-| 📉 Very Low Pressure | Pressure < 985 hPa |
-| 📉 Extremely Low Pressure | Pressure < 970 hPa |
-| 💨 Gale Warning | Beaufort 8-9 |
-| ⛈️ Storm Force | Beaufort 10-11 |
-| 🌪️ Hurricane Force | Beaufort 12 |
-| 🌊 Rough Seas | Wave height ≥ 4m |
-| 🌊 Extreme Waves | Wave height ≥ 9m |
+| Alert | Trigger | Level |
+|-------|---------|-------|
+| 🌀 Confused Sea Warning | Swells within 45° + B≥7 + waves ≥ 2.5m | 🔴 Danger |
+| 🌀 Confused Sea Advisory | Swells within 45° + B≥5 + waves ≥ 1.5m | 🟠 Warning |
+| 📉 Extremely Low Pressure | Pressure < 970 hPa | 🔴 Danger |
+| 📉 Very Low Pressure | Pressure < 985 hPa | 🔴 Danger |
+| 📉 Low Pressure Advisory | Pressure < 1000 hPa | 🟠 Warning |
+| 🌪️ Hurricane Force | Beaufort 12 | 🔴 Danger |
+| ⛈️ Storm Force | Beaufort 10-11 | 🔴 Danger |
+| 💨 Gale Warning | Beaufort 8-9 | 🟠 Warning |
+| 🌊 Extreme Waves | Wave height ≥ 9m | 🔴 Danger |
+| 🌊 Rough Seas | Wave height ≥ 4m | 🟠 Warning |
+| 🔄 Extreme Current | Ocean current ≥ 8 knots | 🔴 Danger |
+| 🔄 Very Strong Current | Ocean current ≥ 5 knots | 🔴 Danger |
+| 🔄 Strong Current | Ocean current ≥ 3 knots | 🟠 Warning |
+
+---
+
+## Sea State Classification
+
+| State | Color | Description |
+|-------|-------|-------------|
+| Glassy/Calm/Smooth | 🟢 Green | Safe conditions |
+| Slight/Moderate | 🟡 Yellow | Caution advised |
+| Rough/Very Rough | 🟠 Orange | Small craft advisory |
+| High/Very High | 🔴 Red | Dangerous |
+| **Phenomenal** | **🔴 Intense Red** | **Survival conditions** |
+| Confused (mild) | 🟠 Orange | Crossing swells < 2.5m |
+| Confused (severe) | 🔴 Red | Crossing swells ≥ 2.5m |
 
 ---
 
@@ -137,11 +158,11 @@ The app surfaces real-time safety warnings based on conditions:
 
 Recreated meteorological conditions from famous sailing disasters:
 
-| Event | Date | Conditions | Casualties |
-|-------|------|-----------|-----------|
-| **Fastnet Race Storm** | Aug 1979 | B11, 13.5m, 966 hPa, confused seas | 15 deaths, 5 yachts sunk |
-| **Sydney-Hobart Storm** | Dec 1998 | B12, 20m, 958 hPa, bomb cyclone | 6 deaths, 5 yachts sunk |
-| **Rolex Middle Sea** | Oct 2007 | B9, 6.5m, 982 hPa, mistral | Several boats dismasted |
+| Event | Date | Wind | Waves | Pressure | Casualties |
+|-------|------|------|-------|---------|-----------|
+| **Fastnet Race Storm** | Aug 1979 | B11, 55 kts | 13.5m confused | 966 hPa | 15 deaths, 5 yachts |
+| **Sydney-Hobart Storm** | Dec 1998 | B12, 60 kts | 20m confused | 958 hPa | 6 deaths, 5 yachts |
+| **Rolex Middle Sea** | Oct 2007 | B9, 42 kts | 6.5m confused | 982 hPa | Several dismasted |
 
 ---
 
@@ -180,7 +201,7 @@ Scales to 10 pods in ~30 seconds
     ↓
 Traffic drops
     ↓
-Scales back to 2 pods after cooldown
+Scales back to 2 pods after cooldown (~5 minutes)
 ```
 
 Tested and proven: 2 → 10 pods under load, back to 2 after traffic stops.
@@ -238,7 +259,7 @@ npm run dev:web   # → http://localhost:3000
 | [Met Office DataHub](https://datahub.metoffice.gov.uk) | `METOFFICE_API_KEY` | 360 calls/day |
 | [Google OAuth](https://console.cloud.google.com) | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Free |
 
-ECMWF, ICON, GFS, Open-Meteo, NOAA and NTSLF require **no API key**.
+ECMWF, ICON, GFS, Open-Meteo, Open-Meteo Marine, NOAA and NTSLF require **no API key**.
 
 ---
 
@@ -256,9 +277,10 @@ neptunefriend/
 │   │       ├── middleware/     # Auth, rate limit, metrics
 │   │       ├── migrations/     # SQL migrations (3 files, 37 zones)
 │   │       ├── models/         # User, Zone models
-│   │       ├── routes/         # Auth, weather, historical routes
+│   │       ├── routes/         # Auth, weather, historical, marine routes
 │   │       └── services/weather/
-│   │           ├── providers/  # 6 weather + 2 tidal providers
+│   │           ├── providers/  # 6 weather + 2 tidal + 1 marine providers
+│   │           ├── MarineEnhancer.ts
 │   │           ├── WeatherAggregator.ts
 │   │           └── WeatherCache.ts
 │   └── web/                    # React frontend (TypeScript)
@@ -267,12 +289,14 @@ neptunefriend/
 │           │   ├── alerts/     # AlertBell, AlertHistory, AlertConfigurator
 │           │   ├── historical/ # HistoricalConditions component
 │           │   ├── map/        # SailingMap, ZoneMarker, ZonePanel
+│           │   ├── marine/     # MarineConditionsCard
 │           │   ├── planner/    # RouteMap, RoutePanel, WaypointList
 │           │   ├── safety/     # SafetyAlerts component
 │           │   ├── sailing/    # ConditionsCard, WaveCard, SafetyBadge
 │           │   ├── swell/      # SwellRose, SeaStateCard, ModelBadges
 │           │   ├── ui/         # Button, Card, Input, Spinner, Toast...
 │           │   └── weather/    # WindRose, TidalFlow, ForecastTimeline
+│           ├── hooks/          # useWeather, useAuth, useMarine...
 │           ├── pages/          # Dashboard, Map, RoutePlanner, Alerts, Historical
 │           ├── services/       # API client, weatherService
 │           ├── store/          # Zustand stores
